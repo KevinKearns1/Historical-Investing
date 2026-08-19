@@ -20,6 +20,7 @@ import pandas as pd
 
 from engine.clock import ET, SimClock, LookaheadError, session_close_time
 from engine.intraday import synthesize_session
+from engine.intraday_source import IntradaySource
 
 CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "cache")
 
@@ -46,12 +47,13 @@ class Bar:
 class PointInTimeFeed:
     """Serves daily and (synthesized) intraday bars, clamped to the sim clock."""
 
-    def __init__(self, clock: SimClock, cache_dir: str = CACHE_DIR):
+    def __init__(self, clock: SimClock, cache_dir: str = CACHE_DIR,
+                 intraday_source: IntradaySource | None = None):
         self.clock = clock
         self.cache_dir = cache_dir
         self._daily: dict[str, pd.DataFrame] = {}
         self._intraday_cache: dict[tuple[str, date], pd.DataFrame] = {}
-        self.synthetic_intraday = True
+        self.intraday_source = intraday_source or IntradaySource()
 
     # -- loading ----------------------------------------------------------
     def load(self, symbols: Iterable[str]) -> list[str]:
@@ -131,10 +133,12 @@ class PointInTimeFeed:
         row = hit.iloc[0]
         prev = df.loc[df.index.date < d]
         prev_close = float(prev["close"].iloc[-1]) if len(prev) else float(row.open)
-        path = synthesize_session(
-            sym, d, float(row.open), float(row.high), float(row.low),
-            float(row.close), float(row.volume), prev_close,
-        )
+        # Recorded bars if the symbol has validated intraday data on disk,
+        # reconstruction from the real daily bar otherwise. The source tags
+        # every bar so the report can state what the run actually rested on.
+        path, _src = self.intraday_source.session(sym, d, row, prev_close)
+        if path is None:
+            path = pd.DataFrame(columns=["open", "high", "low", "close", "volume"])
         self._intraday_cache[key] = path
         if len(self._intraday_cache) > 4000:
             self._intraday_cache.pop(next(iter(self._intraday_cache)))

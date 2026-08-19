@@ -19,18 +19,32 @@ that are not possible as stated, and pretending otherwise would produce
 confident numbers built on nothing. Here is exactly where the ground is solid
 and where it is not.
 
-### 1. Minute data for 2000 does not exist in yfinance
+### 1. Minute data for 2000 is real, but it is not free
 
 yfinance serves intraday bars for the **last 30 days** at 1-minute resolution
-and the **last 60 days** at 2–90 minute resolution. There is no path to a
-minute bar from January 2000. None.
+and the **last 60 days** at 2–90 minute. There is no path to a January 2000
+minute bar through it.
 
-What *is* available for 2000 is the **daily** OHLCV print, and that is real.
+Recorded 2000 intraday data **does exist** — NYSE TAQ reaches back to 1993,
+Refinitiv Tick History to ~1996, and QuantQuote and Tick Data LLC sell
+1-minute equities from 1998. All are paid. `docs/DATA_SOURCES.md` lists what
+each actually carries and what it costs you in coverage.
 
-So the engine reconstructs each session's minute path from the true daily bar:
-it opens at the real open, touches the real high and the real low, closes at
-the real close, distributes the real volume across the U-shaped curve US
-equities actually traded, and fills the gaps with a seeded Brownian bridge.
+The engine takes them directly:
+
+```bash
+python3 scripts/fetch_intraday.py --format quantquote --src ~/qq/ --symbols MSFT INTC
+python3 scripts/run_backtest.py --interval-minutes 2 --require-real-intraday
+```
+
+Pull **1-minute once**; `--interval-minutes` resamples at run time, so the
+bi-minute simulation and the 1, 5 and 15-minute versions all come off the same
+download. `--require-real-intraday` makes the run refuse to reconstruct, so no
+result silently mixes recorded and modelled bars.
+
+**Without recorded bars, the engine reconstructs** each session from the true
+daily print: real open, real high, real low, real close, real volume on the
+U-shaped curve US equities actually traded, seeded Brownian bridge between.
 
 | | Status |
 |---|---|
@@ -38,72 +52,147 @@ equities actually traded, and fills the gaps with a seeded Brownian bridge.
 | Any daily-resolution signal | **Real** |
 | Which of the high or low printed first | **Modelled** |
 | The price at 10:47 specifically | **Modelled** |
-| Whether a stop inside the day's range was hit before the target | **Modelled** |
+| Whether a stop inside the day's range hit before the target | **Modelled** |
 
-The last row is the one that costs you. Every intraday strategy here carries
-genuine model error. The engine measures it rather than hiding it: run with
-`--path-seeds 5` and the report prints the spread of outcomes across different
-synthetic paths. **A strategy whose result swings wildly across seeds was
-reading path noise, not signal, and you should not trust its number.**
+Every run prints which it used. `--path-seeds 5` measures the cost: on one test
+window, three synthetic paths over identical daily data returned −2.9%, −3.1%
+and **+3.5%**. That 6.6% spread *is* the error bar. **A strategy whose result
+swings across seeds was reading path noise, not signal.**
 
-### 2. Historical option quotes for 2000 do not exist in yfinance either
+### 2. A silent-failure trap worth knowing about
 
-yfinance exposes only the *current* option chain. There is no 2000 chain at any
-date. Every option price here is therefore a **model price**: Black-Scholes-
-Merton on the real, point-in-time underlying, with an implied-vol surface built
-from point-in-time realized vol plus a put skew, a term structure, a stress
-term and an earnings-event term.
+A trading API connected to this session was asked for 5-minute MSFT bars
+covering January 2000. It returned **780 bars**, every field populated, no
+error.
 
-This cuts one way, and it is not in your favour when it comes to realism: model
-prices are smoother and fairer than the real 2000 tape, where a wide market and
-a slow fill often *were* the whole trade. The cost model deliberately
-overstates spreads to lean against that, but it cannot fully compensate.
+```
+interpolated: 780 of 780 (100%)
+bars with volume > 0: 0
+distinct close prices across all 780 bars: 1   ->  "484.520000"
+```
 
-### 3. Point-in-time fundamentals are not available
+All gap-fill. The provider has no history before ~2013 and silently
+interpolates a flat line across anything earlier. Ingested unchecked, that is a
+backtest on a **constant price**: no volatility, every mean-reversion and
+breakout signal dead, and a clean equity curve meaning nothing.
 
-You listed EPS, PEG, ROE, debt/equity, FCF, margins, revenue growth, EBITDA,
-book value, short interest and so on. yfinance's `.info` returns **today's**
-values, and its financial statements reach back roughly four to five years.
-Using either in a 2000 simulation is lookahead bias in its purest form — you
-would be trading 2000 on numbers published in 2026.
+So nothing enters the engine unvalidated. `engine/provenance.py` catches that
+exact series on five independent signals — the vendor flag, zero volume, one
+distinct close, zero-range bars, and a 779-bar unchanged run — and a rejected
+series falls through to reconstruction rather than poisoning the run. It is a
+regression test now (`test_rejects_the_real_broker_gapfill`).
 
-So the ten strategies are built on what genuinely *is* reconstructible
-point-in-time from the daily record: price, volume, volatility, trend,
-relative strength, and the options surface derived from them. The one place
-fundamentals-adjacent data enters is OP-04's earnings **dates**, which live in
-a static config file precisely so they cannot be back-filled from the future.
+### 3. Historical option quotes for 2000 do not exist in yfinance
 
-If you want true point-in-time fundamentals, they exist — Compustat Point-in-
-Time, S&P Capital IQ, Sharadar SF1 — but they are paid, and none of them is
-yfinance. The engine takes them as a CSV plug-in if you get them.
+Only current chains. Every option price here is a **model price**: BSM on the
+real point-in-time underlying with a vol surface carrying put skew, term
+structure, a stress term, and an earnings term added as *variance* so it
+dilutes with tenor the way a real term structure does.
 
-### 4. Survivorship bias, and why it is worse than usual for this year
+Model prices are smoother and fairer than the real 2000 tape, where a wide
+market and a slow fill often *were* the trade. The cost model overstates
+spreads to lean against that; it cannot fully compensate.
 
-yfinance only resolves tickers that still exist. For 2000 that is a serious
-problem, because the interesting names are precisely the ones that died:
-WorldCom, CMGI, Ariba, JDS Uniphase, Lucent, Nortel, Sun, Yahoo!.
+### 4. Fundamentals: supported, and gated on the filing date
 
-`config/universe_2000.yml` lists them deliberately. The fetcher reports every
-name it cannot retrieve, and **that report is the bias measurement for your
-run.** Note which way it cuts:
+The KPIs are wired in — EPS, P/E, PEG, ROE, debt/equity, FCF, margins, revenue
+growth, EBITDA, price/book, dividend yield and payout, market cap. **The
+requirement is not "fundamental data", it is a filing-date column.**
 
-- for the **long** strategies, missing failures bias results **upward**
-- for the **short** strategies, the missing names are the best shorts of the
-  year, so results are biased **downward**
+Every record carries two dates: `period_end` (the fiscal period) and
+`available_on` (**the date it became public**). Lookups key on the second. Ask
+for a company's ROE on 2000-02-01 and you get the last filing published *by*
+2000-02-01 — never the 10-K that landed in March, however much it describes
+December. That gap ran up to 90 days in 2000; keying on `period_end` would hand
+every strategy three months of foresight on every name, every quarter.
 
-Neither bias is small in 2000.
+```bash
+python3 scripts/fetch_fundamentals.py --format sharadar --src sf1.csv --dimension ARQ
+python3 scripts/run_backtest.py --fundamentals data/fundamentals/fundamentals.csv
+```
 
-### 5. This session could not run it on real data
+Sharadar SF1 (`datekey` is the filing date, covers ~1998+ including delisted
+names) is the practical choice; Compustat Point-in-Time is the academic
+standard. **yfinance `.info` is not usable** — it returns today's ratios. The
+loader **refuses to write** an export with no filing-date column, and warns
+when the median reporting lag is implausibly short.
 
-The environment this repository was built in blocks Yahoo Finance at the
-network egress policy (`fc.yahoo.com`, `query1/query2.finance.yahoo.com` all
-return 403 at the proxy; stooq and Alpha Vantage are blocked too). So the
-engine has **never been run against real 2000 prices** — only against the
-clearly-labelled synthetic data in `scripts/make_demo_data.py`, which exists to
-exercise the plumbing and produces numbers that mean nothing about 2000.
+OP-03 and EQ-04 screen on these. One design rule matters:
+**unknown is not fail.** A missing filing passes the screen, because counting
+it as a failure would turn the screen into a filter on *data coverage* — worst
+for exactly the small, distressed and delisted names — and reintroduce
+survivorship bias wearing a fundamental screen as a disguise.
 
-Run `scripts/fetch_data.py` somewhere with network access and every result in
-this README becomes real. Until then, treat any P&L you see as a self-test.
+### 5. Verified earnings dates, from the primary record
+
+`config/earnings_2000.yml` held approximate dates. The replacement pulls them
+from **SEC EDGAR 8-K filings**, where the acceptance timestamp is the moment the
+announcement became public — free and authoritative back to 1993.
+
+```bash
+export EDGAR_USER_AGENT="Your Name your@email.com"    # EDGAR requires a contact
+python3 scripts/fetch_earnings_edgar.py --start 1999-01-01 --end 2001-06-30
+```
+
+Two honest caveats, both handled rather than hidden:
+
+1. **Item 2.02 did not exist before 2004-08-23.** Earnings 8-Ks in 2000 were
+   filed under Item 5 or Item 12 and cannot be identified by item code with
+   confidence. Pre-2004 filings are written with `confidence: medium` plus the
+   accession number, so every date traces back to its filing.
+2. **Delisted companies are absent from EDGAR's ticker map** — it lists only
+   active registrants, so WorldCom, CMGI, Ariba, JDS Uniphase and the rest are
+   missing. Their filings are still there; look up each CIK by company name and
+   add it to `config/cik_overrides.yml`. That file is deliberately **empty**
+   rather than pre-filled from memory: a wrong CIK does not error, it silently
+   attaches another company's filing dates to your symbol.
+
+### 6. Survivorship bias, unusually severe for this year
+
+yfinance only resolves tickers that still exist, and for 2000 the interesting
+names are precisely the ones that died. `config/universe_2000.yml` lists them
+deliberately; the fetcher reports every name it cannot retrieve, and **that
+report is the bias measurement for your run.**
+
+- for **long** strategies, missing failures bias results **upward**
+- for **short** strategies, the missing names are the best shorts of the year,
+  so results are biased **downward**
+
+QuantQuote's survivorship-bias-free constituent lists are the direct fix.
+
+### 7. Testing through time, not just through 2000
+
+Period rules are now functions of the simulated date (`engine/era.py`), so the
+same strategy faces the rules that actually applied:
+
+| | 2000 | 2008 | 2021 |
+|---|---|---|---|
+| Tick size | $0.0625 | $0.01 | $0.01 |
+| Uptick rule | **on** | off | off (Rule 201 only) |
+| Day-trade buying power | **2x** | 4x | 4x |
+| PDT rule | **none** | yes | yes |
+| Commission | $12/trade | $9.99 | **$0** |
+| Weekly options | **none** | yes | yes |
+
+```bash
+python3 scripts/walk_forward.py --start 1999 --end 2020 --is-years 5
+```
+
+Reports each year separately, splits in-sample from out-of-sample, and judges
+every year against **that year's T-bill** — because cash paid 5.8% in 2000 and
+0.05% in 2015, and a raw return hides that completely. In testing it flagged a
++2.81% year as a *loss* against 4.64% T-bills, which is the correct reading.
+
+### 8. This session still could not fetch real data
+
+Every external data host is blocked by this environment's egress policy —
+Yahoo, SEC EDGAR, stooq, Polygon, Alpha Vantage, Tiingo and FMP all return 403
+at the proxy, while GitHub returns 200. So the engine has **never run against
+real 2000 prices**, only against the clearly-labelled synthetic data in
+`scripts/make_demo_data.py`.
+
+Run the fetch scripts anywhere with normal network access and every result
+becomes real. Until then, treat any P&L you see as a self-test.
 
 ---
 
@@ -112,18 +201,26 @@ this README becomes real. Until then, treat any P&L you see as a self-test.
 ```bash
 pip install -r requirements.txt
 
-# 1. Fetch real daily bars (needs network; the only step that does).
-#    Starts in 1999 so a 250-day lookback exists on 2000-01-03.
+# 1. Daily bars. Starts in 1999 so a 250-day lookback exists on 2000-01-03.
 python3 scripts/fetch_data.py --start 1999-01-01 --end 2001-01-31
 
-# 2. Run the year.
-python3 scripts/run_backtest.py --start 2000-01-01 --end 2000-12-31
+# 2. Verified earnings dates from SEC EDGAR (free, authoritative).
+export EDGAR_USER_AGENT="Your Name your@email.com"
+python3 scripts/fetch_earnings_edgar.py --start 1999-01-01 --end 2001-06-30
 
-# Faster sweep (every 15 minutes instead of every minute):
-python3 scripts/run_backtest.py --minute-step 15
+# 3. Optional: recorded intraday, and point-in-time fundamentals.
+python3 scripts/fetch_intraday.py --format quantquote --src ~/qq/
+python3 scripts/fetch_fundamentals.py --format sharadar --src sf1.csv --dimension ARQ
 
-# Measure how much of the result is intraday-path luck:
+# 4. Run the year, on 2-minute bars.
+python3 scripts/run_backtest.py --start 2000-01-01 --end 2000-12-31 \
+    --interval-minutes 2 --fundamentals data/fundamentals/fundamentals.csv
+
+# How much of the result is intraday-path luck?
 python3 scripts/run_backtest.py --path-seeds 5
+
+# Does it hold up across regimes?
+python3 scripts/walk_forward.py --start 1999 --end 2020 --is-years 5
 ```
 
 No network? Exercise the engine on synthetic data:
@@ -229,7 +326,7 @@ revised, and that a 20-day SMA computed at noon matches one computed only from
 bars that closed yesterday. **If you change the data layer, run these first.**
 
 ```bash
-python3 -m pytest tests/ -q      # 26 tests
+python3 -m pytest tests/ -q      # 49 tests
 ```
 
 The guarantee is real enough that it caught a diagnostic script of mine trying
@@ -251,10 +348,17 @@ engine/
   risk.py            sizing, loss limits, the drawdown kill switch
   backtest.py        the session loop
   metrics.py         Sharpe vs T-bill, Sortino, drawdown, per-strategy attribution
-strategies/          the ten strategies, one file each
-scripts/             fetch_data.py · run_backtest.py · make_demo_data.py
-config/              universe · earnings dates · sleeve and risk settings
-tests/               no-lookahead proofs and engine mechanics
+  era.py             date-aware rules: ticks, shorting law, leverage, commissions
+  provenance.py      bar-source tagging and vendor gap-fill detection
+  intraday_source.py recorded bars if present, reconstruction if not
+  fundamentals.py    point-in-time KPIs keyed on filing date
+strategies/          the ten strategies, one file each, plus filters.py
+scripts/             fetch_data · fetch_intraday · fetch_fundamentals ·
+                     fetch_earnings_edgar · run_backtest · walk_forward ·
+                     make_demo_data
+config/              universe · earnings · CIK overrides · sleeve and risk
+docs/DATA_SOURCES.md what actually carries 2000 data, and what was tested
+tests/               no-lookahead proofs, engine mechanics, data integrity
 ```
 
 ## Risk controls
@@ -267,16 +371,25 @@ failure mode the engine actually exhibited during development.
 
 ## Known limitations
 
-1. Intraday paths are modelled, not recorded (§1). Always check `--path-seeds`.
-2. Option prices are modelled, not recorded (§2).
-3. No point-in-time fundamentals (§3).
-4. Survivorship bias, unusually severe for this year (§4).
-5. Earnings dates in `config/earnings_2000.yml` are **approximate** and flagged
-   `verified: false`. Verify against period sources before trusting OP-04.
+1. Without a paid intraday feed, intraday paths are **modelled** (§1). Always
+   check `--path-seeds`; use `--require-real-intraday` once you have data.
+2. Option prices are modelled, not recorded (§3). No 2000 chains exist free.
+3. Fundamentals need a source with a **filing-date column** (§4). The engine
+   supports them; it cannot conjure them.
+4. Survivorship bias, unusually severe for this year (§6).
+5. Pre-2004 earnings 8-Ks cannot be identified by item code, so EDGAR dates for
+   2000 carry `confidence: medium` and should be spot-checked against the
+   filing text. `config/cik_overrides.yml` must be filled in by hand for
+   delisted names — deliberately, since a wrong CIK fails silently.
 6. `VolSurface.event_move_multiple` is the single most important free parameter
    in the options sleeve — it alone decides whether OP-04 ever sees cheap vol.
-   It is set to a defensible value, not a tuned one.
+   Set to a defensible value, not a tuned one.
 7. No borrow *availability* modelling: hard-to-borrow names are charged a 25%
-   rate, but in reality some simply could not be shorted at all in 2000.
+   rate, but some genuinely could not be shorted at all in 2000.
 8. Fills assume your order does not move the market beyond the square-root
    impact term. For a $25,000 account in liquid names that is reasonable.
+9. **2-minute bars in 2000 are noisier than they look.** Sixteenth ticks meant a
+   2-minute bar on a mid-cap could be one or two ticks wide, Nasdaq was a dealer
+   market where the inside quote and the last sale genuinely diverged, and the
+   tape ran slower. An edge living entirely inside a 2-minute bar is probably
+   microstructure noise. See `docs/DATA_SOURCES.md`.

@@ -18,6 +18,12 @@ Rules.
   Assignment if assigned, take the stock and sell ~30-delta covered calls
              against it -- the wheel. Assignment is modelled, including early
              assignment when the put goes deep in the money.
+  Screen     a point-in-time solvency check -- positive trailing EPS, positive
+             free cash flow, non-negative net margin, debt/equity under 2 --
+             read from the last filing that was PUBLIC on the trade date. A name
+             with no filing yet is not rejected; see strategies/filters.py for
+             why treating unknown as failure would smuggle survivorship bias
+             back in.
   Honesty    this is the strategy most likely to look brilliant and then hand
              it all back in one week. The engine's per-trade cap exists
              precisely because short premium lies about its risk.
@@ -25,6 +31,7 @@ Rules.
 from __future__ import annotations
 
 from strategies.base import Strategy
+from strategies.filters import SOLVENCY, ScreenStats
 from engine.options import OptionContract, delta_strike, expiry_near, risk_free_rate
 
 
@@ -33,6 +40,8 @@ class CashSecuredPuts(Strategy):
         super().__init__(name="OP-03 Cash-Secured Puts / Wheel", sleeve="options",
                          cadence=30, **kw)
         self.value_universe = universe or []
+        self.screen = SOLVENCY
+        self.screen_stats = ScreenStats()
 
     def on_bar(self, ctx) -> None:
         self._manage(ctx)
@@ -50,6 +59,14 @@ class CashSecuredPuts(Strategy):
             rv = ctx.feed.realized_vol(sym, 21)
             ma50 = ctx.feed.sma(sym, 50)
             if None in (px, rv, ma50) or px < 20 or rv > 0.45 or px < ma50:
+                continue
+
+            # Selling a put is agreeing to own the stock, so the balance sheet
+            # gets a vote. Point-in-time: this reads the last filing that was
+            # actually public today, never a later one.
+            res = self.screen.check(ctx.kpis(sym))
+            self.screen_stats.record(res)
+            if not res:
                 continue
 
             today = ctx.date

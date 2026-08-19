@@ -1,0 +1,28 @@
+# CIK numbers for companies EDGAR's CURRENT ticker map no longer lists.
+#
+# EDGAR's company_tickers.json only contains active registrants. Every company
+# that was acquired or went bankrupt has fallen out of it -- which for a year
+# 2000 study is precisely the interesting half of the universe. Their filings
+# are still on EDGAR; only the ticker->CIK shortcut is gone.
+#
+# To fill one in, search the company NAME (not the ticker) at
+#   https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&company=<name>
+# and copy the 10-digit CIK.
+#
+# Deliberately left EMPTY rather than pre-filled from memory: a wrong CIK does
+# not error, it silently attaches another company's filing dates to your
+# symbol, and you would never see it. Fill these in from the source.
+#
+# Format:  SYMBOL: <integer CIK>
+# Example: WCOM: 723527          # verify before trusting
+
+# --- needed for the 2000 universe (delisted names) ---
+# YHOO:   # Yahoo! Inc, acquired 2017
+# JDSU:   # JDS Uniphase, renamed Viavi/Lumentum
+# CMGI:   # CMGI Inc
+# BRCM:   # Broadcom Corp (pre-2016 entity)
+# SUNW:   # Sun Microsystems, acquired 2010
+# LU:     # Lucent Technologies, merged 2006
+# NT:     # Nortel Networks, bankrupt 2009
+# WCOM:   # WorldCom, bankrupt 2002
+# ARBA:   # Ariba Inc, acquired 2012

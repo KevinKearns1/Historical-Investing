@@ -9,3 +9,6 @@ reports/*.json
 reports/*.html
 !reports/.gitkeep
 data/demo_cache/
+data/intraday/*.csv
+data/intraday/*.parquet
+data/fundamentals/*.csv

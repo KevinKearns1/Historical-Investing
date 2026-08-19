@@ -21,12 +21,15 @@ Rules.
 from __future__ import annotations
 
 from strategies.base import Strategy
+from strategies.filters import PROFITABLE_GROWTH, ScreenStats
 
 
 class MomentumRotation(Strategy):
     def __init__(self, benchmark: str = "^IXIC", **kw):
         super().__init__(name="EQ-04 Momentum Rotation", sleeve="equity", cadence=5, **kw)
         self.benchmark = benchmark
+        self.screen = PROFITABLE_GROWTH
+        self.screen_stats = ScreenStats()
 
     def on_session_start(self, ctx) -> None:
         self.state = {"picks": [], "done": False}
@@ -43,6 +46,12 @@ class MomentumRotation(Strategy):
             if b5 is None or b20 is None:
                 continue
             if (r20 - b20) <= 0:
+                continue
+            # Momentum plus a growth tilt: in 2000 price momentum alone bought
+            # a great many companies with no revenue at all.
+            res = self.screen.check(ctx.kpis(sym))
+            self.screen_stats.record(res)
+            if not res:
                 continue
             scored.append((r5 - b5, sym))
         scored.sort(reverse=True)

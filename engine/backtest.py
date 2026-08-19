@@ -26,6 +26,10 @@ from engine.options import OptionPricer, VolSurface
 from engine.portfolio import Portfolio
 from engine.risk import RiskManager, RiskLimits
 from engine.broker import Broker
+from engine.era import Era, leverage_rules
+from engine.fundamentals import FundamentalsStore
+from engine.intraday_source import IntradaySource
+from engine.provenance import ProvenanceLedger
 
 
 @dataclass
@@ -39,6 +43,8 @@ class Context:
     risk: RiskManager
     universe: list[str] = field(default_factory=list)
     regime: dict = field(default_factory=lambda: {"trend": 0, "stress": 0.0})
+    fundamentals: FundamentalsStore | None = None
+    era: Era | None = None
     minute_index: int = 0
     day_number: int = 0
     logs: list[str] = field(default_factory=list)
@@ -52,6 +58,17 @@ class Context:
     @property
     def date(self) -> date:
         return self.clock.session_date
+
+    def kpis(self, symbol: str) -> dict:
+        """Point-in-time fundamental ratios for `symbol`, as of right now.
+
+        Returns {} when no filing was public yet -- which is the correct answer
+        early in a company's coverage, and a strategy must treat it as "unknown"
+        rather than as "fails the filter".
+        """
+        if self.fundamentals is None:
+            return {}
+        return self.fundamentals.kpis(symbol, self.feed.last_price(symbol), self.date)
 
     def fire_once(self, key: str, at_minute: int) -> bool:
         """True exactly once per session, on the first bar at or after
@@ -103,7 +120,10 @@ class Backtest:
                  benchmark: str = "^IXIC", costs: CostModel | None = None,
                  limits: RiskLimits | None = None, hard_to_borrow: set | None = None,
                  minute_step: int = 1, verbose: bool = False,
-                 cache_dir: str | None = None):
+                 cache_dir: str | None = None, interval_minutes: int = 1,
+                 require_real_intraday: bool = False,
+                 fundamentals_csv: str | None = None,
+                 era_rules: bool = True):
         self.start, self.end = start, end
         self.universe = universe
         self.strategies = strategies
@@ -112,8 +132,17 @@ class Backtest:
         self.hard_to_borrow = hard_to_borrow or set()
 
         self.clock = SimClock(datetime.combine(start, time(9, 30), tzinfo=ET))
-        self.feed = (PointInTimeFeed(self.clock, cache_dir) if cache_dir
-                     else PointInTimeFeed(self.clock))
+        self.ledger = ProvenanceLedger()
+        self.era_rules = era_rules
+        self.interval_minutes = max(int(interval_minutes), 1)
+        src = IntradaySource(interval_minutes=self.interval_minutes,
+                             ledger=self.ledger, require_real=require_real_intraday)
+        self.feed = PointInTimeFeed(self.clock, cache_dir, src) if cache_dir else \
+            PointInTimeFeed(self.clock, intraday_source=src)
+        self.fundamentals = FundamentalsStore(self.clock)
+        if fundamentals_csv:
+            n = self.fundamentals.load_csv(fundamentals_csv)
+            print(f"fundamentals: {n:,} point-in-time records loaded")
         self.pf = Portfolio(starting_cash=starting_cash)
         self.costs = costs or CostModel()
         self.pricer = OptionPricer(VolSurface())
@@ -121,6 +150,7 @@ class Backtest:
         self.risk = RiskManager(limits or RiskLimits())
         self.ctx = Context(self.clock, self.feed, self.broker, self.pf, self.risk,
                            universe, verbose=verbose)
+        self.ctx.fundamentals = self.fundamentals
         self.equity_curve: list[tuple[date, float]] = []
         self.daily_rows: list[dict] = []
 
@@ -222,6 +252,13 @@ class Backtest:
             self.clock.advance_to(datetime.combine(d, time(9, 30), tzinfo=ET))
 
             # Regime uses only completed bars -- the feed guarantees it.
+            if self.era_rules:
+                nl_probe = self.pf.net_liq({}, {})
+                self.ctx.era = Era.on(d, 50.0, nl_probe)
+                self.costs.apply_era(d)
+                lev = leverage_rules(d, nl_probe)
+                self.pf.initial_margin = lev.initial_margin
+                self.pf.maintenance_margin = lev.maintenance_margin
             self.ctx.regime = self._regime()
             self.ctx.reset_day()
             nl_open = self.ctx.net_liq()
@@ -280,7 +317,9 @@ class Backtest:
                                      self.costs.hard_to_borrow_rate, max((nxt - d).days, 1))
             self._record_day(d, self.ctx.net_liq())
 
-        return {"missing_symbols": missing,
+        return {"provenance": self.ledger.summary(),
+                "fundamentals_coverage": self.fundamentals.coverage(),
+                "missing_symbols": missing,
                 "equity_curve": self.equity_curve,
                 "daily": self.daily_rows,
                 "portfolio": self.pf,

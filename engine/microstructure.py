@@ -26,19 +26,26 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
 
+from engine.era import min_tick, sec_fee_rate, uptick_rule_applies
+
 TICK_SIXTEENTH = 1.0 / 16.0
 DECIMALIZATION_PILOT = date(2000, 8, 28)
 
 
 def round_to_tick(price: float, d: date | None = None, decimal: bool = False) -> float:
-    """Snap a price to the tick that was legal on that date."""
+    """Snap a price to the tick that was legal on that date.
+
+    Delegates to engine.era so the same call is correct in 1999 (sixteenths),
+    2000 (sixteenths), and 2015 (pennies). Passing no date assumes 2000 rules,
+    which keeps the original behaviour for callers that predate the era module.
+    """
     if price <= 0:
         return 0.0
     if decimal:
         return round(price, 2)
-    if price < 1.0:                     # sub-dollar traded in 1/32nds
-        return round(price * 32) / 32
-    return round(price / TICK_SIXTEENTH) * TICK_SIXTEENTH
+    tick = min_tick(d, price) if d is not None else (
+        TICK_SIXTEENTH if price >= 1.0 else 1.0 / 32.0)
+    return round(price / tick) * tick
 
 
 @dataclass
@@ -54,6 +61,20 @@ class CostModel:
     margin_rate_annual: float = 0.095       # Reg T debit rate, prime + ~2%
     enforce_uptick: bool = True
     decimal_after_pilot: bool = False       # keep sixteenths all year by default
+
+    def apply_era(self, d: date) -> None:
+        """Update commissions, fees and shorting law to the rules in force on
+        `d`. Called at each session start when the run spans multiple eras, so
+        a 1999-2020 backtest is charged 2000 commissions in 2000 and zero
+        commissions after the 2019 cutover -- rather than one era's costs
+        applied anachronistically across twenty years."""
+        from engine.era import commissions
+        eq, ob, opc = commissions(d)
+        self.equity_commission = eq
+        self.option_base = ob
+        self.option_per_contract = opc
+        self.sec_fee_rate = sec_fee_rate(d)
+        self.enforce_uptick = uptick_rule_applies(d)
 
     # -- spreads ----------------------------------------------------------
     def equity_half_spread(self, price: float, adv: float | None, vol: float | None) -> float:

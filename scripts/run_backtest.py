@@ -75,6 +75,18 @@ def main() -> int:
     ap.add_argument("--path-seeds", type=int, default=1,
                     help="Re-run with N different synthetic intraday paths to "
                          "measure how much of the result is path-luck.")
+    ap.add_argument("--interval-minutes", type=int, default=1,
+                    help="Bar size the strategies see. 2 = the bi-minute run. "
+                         "Real 1-minute data is resampled to this; no re-fetch needed.")
+    ap.add_argument("--require-real-intraday", action="store_true",
+                    help="Refuse to reconstruct. Symbols without validated recorded "
+                         "intraday bars are skipped rather than modelled, so no result "
+                         "silently mixes recorded and reconstructed data.")
+    ap.add_argument("--fundamentals", default=None,
+                    help="Point-in-time fundamentals CSV (scripts/fetch_fundamentals.py).")
+    ap.add_argument("--no-era-rules", action="store_true",
+                    help="Pin 2000 rules instead of letting tick size, shorting law, "
+                         "leverage and commissions follow the simulated date.")
     ap.add_argument("--cache-dir", default=None)
     ap.add_argument("--out", default="reports")
     ap.add_argument("--verbose", action="store_true")
@@ -106,6 +118,9 @@ def main() -> int:
             limits=RiskLimits(**cfg["risk"]),
             hard_to_borrow=set(uni.get("hard_to_borrow") or []),
             minute_step=a.minute_step, verbose=a.verbose, cache_dir=cache,
+            interval_minutes=a.interval_minutes,
+            require_real_intraday=a.require_real_intraday,
+            fundamentals_csv=a.fundamentals, era_rules=not a.no_era_rules,
         )
         res = bt.run()
         runs.append(res)
@@ -143,6 +158,8 @@ def main() -> int:
 
     with open(os.path.join(outdir, "summary.json"), "w") as f:
         json.dump({"stats": stats, "path_sensitivity": path_spread,
+                   "provenance": base["provenance"],
+                   "fundamentals_coverage": base["fundamentals_coverage"],
                    "rejects": base["rejects"],
                    "missing_symbols": base["missing_symbols"],
                    "halted": base["risk"].halted,
@@ -168,6 +185,27 @@ def main() -> int:
     print(f"  {'short_borrow':<22} {base['portfolio'].borrow_paid:,.2f}")
     if base["risk"].halted:
         print(f"\n  HALTED: {base['risk'].halt_reason}")
+    prov = base["provenance"]
+    real_frac = prov.get("real_bar_fraction", 0.0)
+    print(f"\n  DATA PROVENANCE")
+    print(f"    intraday bars by source: {prov.get('bars_by_source')}")
+    print(f"    recorded fraction:       {real_frac:.1%}")
+    if real_frac < 1.0:
+        n_syn = len(prov.get("symbols_on_synthesized_intraday", []))
+        print(f"    {n_syn} symbol(s) ran on RECONSTRUCTED intraday paths. Their")
+        print(f"    session OHLCV is real; the order of prints within the day is")
+        print(f"    modelled. Check --path-seeds before trusting any intraday edge.")
+    if prov.get("rejected_series"):
+        print(f"    REJECTED as vendor gap-fill:")
+        for r in prov["rejected_series"][:5]:
+            print(f"      {r}")
+    fc = base["fundamentals_coverage"]
+    if fc.get("symbols_loaded"):
+        print(f"    fundamentals: {fc['records']:,} PIT records, "
+              f"{fc['symbols_loaded']} symbols")
+    elif a.fundamentals:
+        print(f"    fundamentals: NONE LOADED from {a.fundamentals}")
+
     if base["missing_symbols"]:
         print(f"\n  survivorship gap ({len(base['missing_symbols'])} names not in cache):")
         print("    " + ", ".join(base["missing_symbols"]))
