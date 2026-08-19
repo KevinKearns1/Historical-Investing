@@ -1,0 +1,72 @@
+# Universe as it existed on 1999-12-31. Every name here was listed and liquid
+# before the simulation starts, so selecting them is not survivorship bias in
+# the usual sense -- but read the caveat below, it matters.
+#
+# SURVIVORSHIP WARNING
+# --------------------
+# yfinance only serves tickers that still resolve today. Names that went to
+# zero in 2000-2002 (and there were many) are largely unfetchable, so a
+# universe built from what yfinance returns is biased toward survivors.
+# For LONG strategies that biases results UPWARD. For the SHORT strategies
+# here it biases them DOWNWARD -- the best shorts of 2000 are the ones
+# missing from the file. Neither bias is small.
+#
+# The delisted names below are listed deliberately: the fetcher will report
+# them as missing, and that report IS the survivorship measurement.
+
+benchmark: "^IXIC"
+secondary_benchmark: "^GSPC"
+
+# High-beta Nasdaq names -- the day trading and long-put universe.
+tech:
+  - MSFT      # Microsoft
+  - INTC      # Intel
+  - CSCO      # Cisco
+  - ORCL      # Oracle
+  - DELL      # Dell
+  - AAPL      # Apple
+  - QCOM      # Qualcomm
+  - AMAT      # Applied Materials
+  - TXN       # Texas Instruments
+  - AMZN      # Amazon
+  - YHOO      # Yahoo!      -- acquired 2017, likely unfetchable
+  - EBAY      # eBay
+  - JDSU      # JDS Uniphase -- reverse split/renamed, likely unfetchable
+  - CMGI      # CMGI         -- likely unfetchable
+  - BRCM      # Broadcom     -- old ticker, likely unfetchable
+  - SUNW      # Sun Micro    -- acquired 2010, likely unfetchable
+  - LU        # Lucent       -- acquired 2006, likely unfetchable
+  - NT        # Nortel       -- bankrupt 2009, likely unfetchable
+  - WCOM      # WorldCom     -- fraud, bankrupt 2002, unfetchable
+  - ARBA      # Ariba        -- likely unfetchable
+
+# Low-beta old-economy names -- the cash-secured put universe. These are the
+# 2000 rotation trade: money leaving tech had to go somewhere, and it went here.
+value:
+  - JNJ       # Johnson & Johnson
+  - PG        # Procter & Gamble
+  - KO        # Coca-Cola
+  - MRK       # Merck
+  - PFE       # Pfizer
+  - XOM       # Exxon Mobil
+  - GE        # General Electric
+  - MO        # Philip Morris / Altria
+  - WMT       # Wal-Mart
+  - JPM       # J.P. Morgan
+
+# ETFs used for the index option strategies. Contract size is the reason:
+# SPX and NDX were far too large a notional for a $25,000 account in 2000.
+etfs:
+  - SPY       # listed 1993
+  - QQQ       # listed 1999-03-10, so tradable throughout 2000
+  - DIA       # listed 1998
+# NOT included: IWM (listed 2000-05-22, so unavailable in January).
+
+# Names that were expensive or impossible to borrow in 2000. Shorting these
+# costs the hard-to-borrow rate, not general collateral.
+hard_to_borrow:
+  - AMZN
+  - CMGI
+  - ARBA
+  - JDSU
+  - YHOO

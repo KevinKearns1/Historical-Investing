@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+data/cache/*.csv
+data/cache/*.parquet
+!data/cache/.gitkeep
+reports/*.csv
+reports/*.json
+reports/*.html
+!reports/.gitkeep
+data/demo_cache/

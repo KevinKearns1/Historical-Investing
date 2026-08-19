@@ -1,0 +1,31 @@
+# Historical earnings announcement dates used by OP-04.
+#
+# 1999 dates are included because OP-04 requires at least THREE past events
+# before it will size a trade -- it compares the implied move to the stock's
+# own realized earnings-move history. Without a 1999 warm-up the strategy
+# would be blind until late 2000.
+#
+# WHY THIS FILE IS STATIC
+# -----------------------
+# yfinance's earnings calendar returns only recent quarters. Pulling it into a
+# 2000 simulation would be lookahead in its purest form. These dates are
+# entered as data, and the loader treats any date it cannot verify as absent
+# rather than guessing -- a missing earnings date means OP-04 simply does not
+# trade that name, which is the safe failure.
+#
+# Populate from a period-correct source (company 8-Ks, press archives) before
+# relying on OP-04's results. The dates below are the approximate historical
+# reporting weeks for these names in 2000 and are marked as such.
+verified: false
+note: "Approximate reporting dates. OP-04 results are indicative only until verified."
+
+MSFT: ["1999-01-19", "1999-04-19", "1999-07-19", "1999-10-18", "2000-01-18", "2000-04-20", "2000-07-18", "2000-10-18"]
+INTC: ["1999-01-12", "1999-04-13", "1999-07-13", "1999-10-12", "2000-01-13", "2000-04-18", "2000-07-18", "2000-10-17"]
+CSCO: ["1999-02-09", "1999-05-11", "1999-08-10", "1999-11-09", "2000-02-08", "2000-05-09", "2000-08-08", "2000-11-06"]
+ORCL: ["1999-03-16", "1999-06-15", "1999-09-14", "1999-12-14", "2000-03-14", "2000-06-20", "2000-09-14", "2000-12-14"]
+DELL: ["1999-02-16", "1999-05-18", "1999-08-17", "1999-11-11", "2000-02-10", "2000-05-11", "2000-08-17", "2000-11-16"]
+AAPL: ["1999-01-13", "1999-04-14", "1999-07-14", "1999-10-13", "2000-01-12", "2000-04-13", "2000-07-18", "2000-10-17"]
+QCOM: ["1999-01-26", "1999-04-20", "1999-07-20", "1999-11-02", "2000-01-25", "2000-04-25", "2000-07-25", "2000-11-07"]
+AMZN: ["1999-01-26", "1999-04-28", "1999-07-21", "1999-10-27", "2000-02-02", "2000-04-26", "2000-07-26", "2000-10-24"]
+EBAY: ["1999-01-21", "1999-04-22", "1999-07-21", "1999-10-21", "2000-01-20", "2000-04-25", "2000-07-20", "2000-10-19"]
+AMAT: ["1999-02-16", "1999-05-18", "1999-08-17", "1999-11-16", "2000-02-15", "2000-05-16", "2000-08-15", "2000-11-14"]

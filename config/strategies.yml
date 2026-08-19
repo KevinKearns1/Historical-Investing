@@ -1,0 +1,37 @@
+# Capital allocation across the two sleeves.
+#
+# The split is deliberate. $25,000 is a small options account: after the
+# 2000-era ticket charge ($15 base + $1.75/contract), a 2-contract trade pays
+# ~$18.50 to open and ~$18.50 to close. That is 3.7% round-trip friction on a
+# $1,000 position. The options sleeve is therefore sized so that each trade is
+# large enough for the commission not to dominate, which in practice means
+# fewer, bigger options positions and not a scattering of small ones.
+
+starting_cash: 25000
+
+sleeves:
+  equity: 15000     # 5 day trading strategies, Reg T 2x intraday
+  options: 10000    # 5 options strategies
+
+risk:
+  risk_per_trade: 0.010          # 1% of net liq at the stop
+  max_equity_position: 0.25
+  max_gross_leverage: 2.0        # Reg T 1999/2000 -- NOT the 4x that arrived in 2001
+  max_option_premium_per_trade: 0.02
+  max_option_premium_open: 0.10
+  daily_loss_limit: 0.03
+  weekly_loss_limit: 0.06
+  max_drawdown_stop: 0.20
+  max_concurrent_equity: 5
+  max_new_trades_per_day: 12
+  max_new_trades_per_strategy_per_day: 3   # stops one strategy eating the whole daily budget
+
+costs:
+  equity_commission: 10.00       # 2000 online retail, mid-range
+  option_base: 15.00
+  option_per_contract: 1.75
+  margin_rate_annual: 0.095      # prime was 8.5-9.5% through 2000
+  borrow_rate_annual: 0.035
+  hard_to_borrow_rate: 0.25
+  enforce_uptick: true           # SEC Rule 10a-1, in force until 2007
+  decimal_after_pilot: false     # sixteenths all year
