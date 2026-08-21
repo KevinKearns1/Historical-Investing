@@ -183,23 +183,54 @@ every year against **that year's T-bill** — because cash paid 5.8% in 2000 and
 0.05% in 2015, and a raw return hides that completely. In testing it flagged a
 +2.81% year as a *loss* against 4.64% T-bills, which is the correct reading.
 
-### 8. This session still could not fetch real data
+### 8. This session cannot fetch real data — and why the usual fixes do not apply
 
-Every external data host is blocked by this environment's egress policy —
-Yahoo, SEC EDGAR, stooq, Polygon, Alpha Vantage, Tiingo and FMP all return 403
-at the proxy, while GitHub returns 200. So the engine has **never run against
-real 2000 prices**, only against the clearly-labelled synthetic data in
-`scripts/make_demo_data.py`.
+Every external data host is denied by this environment's egress policy. The
+important detail is **where** the denial happens:
 
-Run the fetch scripts anywhere with normal network access and every result
-becomes real. Until then, treat any P&L you see as a self-test.
+```
+> CONNECT query1.finance.yahoo.com:443 HTTP/1.1
+> User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) ... Chrome/120.0.0.0
+< HTTP/1.1 403 Forbidden          <- from 127.0.0.1, the local proxy
+* CONNECT tunnel failed, response 403
+```
+
+The 403 comes from a proxy on **this** side of the connection, at the CONNECT
+stage. No TLS handshake with Yahoo occurred and no packet reached it — Yahoo's
+WAF never saw the request and could not have produced that 403. The same holds
+for SEC EDGAR, stooq, Polygon, Alpha Vantage, Tiingo and FMP.
+
+That rules out the standard anti-bot remedies, for a structural reason rather
+than a policy one:
+
+- **Browser headers and User-Agent spoofing** — the trace above sends a full
+  Chrome UA and is refused anyway. `Accept` and `Accept-Language` are never
+  transmitted at all: they belong inside a tunnel that was never opened.
+- **IP rotation, delays, jitter** — nothing is being rate-limited. The denial is
+  categorical and per-host, identical on the first request.
+- **Residential or static ISP proxies** — reaching one requires a CONNECT to the
+  provider's gateway through the same blocked proxy. Verified: `brd.superproxy.io`,
+  `pr.oxylabs.io` and `gate.smartproxy.com` are all denied too.
+
+**The EDGAR User-Agent rule is real and is already implemented.** EDGAR does
+require a descriptive User-Agent with a contact address, and returns 403 without
+one. `scripts/fetch_earnings_edgar.py` reads `EDGAR_USER_AGENT`, warns when it
+is unset or a placeholder, and rate-limits to EDGAR's documented 10 requests
+per second. That advice is correct — it is simply not what is blocking here.
+
+`scripts/preflight.py` tells the two cases apart on any machine, since they look
+identical in a log and have opposite fixes. **Run this repo locally** and
+everything works unchanged — see `SETUP.md`.
 
 ---
 
 ## Quick start
 
+See `SETUP.md` for a full local walkthrough.
+
 ```bash
 pip install -r requirements.txt
+python3 scripts/preflight.py          # verifies this machine can reach the data
 
 # 1. Daily bars. Starts in 1999 so a 250-day lookback exists on 2000-01-03.
 python3 scripts/fetch_data.py --start 1999-01-01 --end 2001-01-31
@@ -326,6 +357,7 @@ revised, and that a 20-day SMA computed at noon matches one computed only from
 bars that closed yesterday. **If you change the data layer, run these first.**
 
 ```bash
+python3 scripts/preflight.py     # can this machine reach the data?
 python3 -m pytest tests/ -q      # 49 tests
 ```
 
@@ -353,7 +385,7 @@ engine/
   intraday_source.py recorded bars if present, reconstruction if not
   fundamentals.py    point-in-time KPIs keyed on filing date
 strategies/          the ten strategies, one file each, plus filters.py
-scripts/             fetch_data · fetch_intraday · fetch_fundamentals ·
+scripts/             preflight · fetch_data · fetch_intraday · fetch_fundamentals ·
                      fetch_earnings_edgar · run_backtest · walk_forward ·
                      make_demo_data
 config/              universe · earnings · CIK overrides · sleeve and risk
