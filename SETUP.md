@@ -20,7 +20,8 @@ look identical in a log and have opposite fixes.
 ```bash
 git clone https://github.com/KevinKearns1/Historical-Investing.git
 cd Historical-Investing
-git checkout claude/day-trading-backtester-2000-dc7lqg
+# The repo's default branch is claude/day-trading-backtester-2000-dc7lqg,
+# so a plain clone already checks out the work. No branch switch needed.
 
 python3 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
