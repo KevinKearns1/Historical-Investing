@@ -162,3 +162,76 @@ restated. That is correct: you traded on the original. `FundamentalRecord`
 carries `is_restatement`, and lookups prefer the original filing. For 2000 this
 is not academic — the era's accounting restatements are a large part of what
 made the following two years what they were.
+
+
+---
+
+# Historical options data — where it actually lives
+
+Tested from a machine with normal network access on 2026-08-22.
+
+## The thing to understand first
+
+**You cannot scrape the past.** Yahoo, CBOE's delayed feed, Tradier and every
+broker chain endpoint serve the CURRENT chain only. There is no free endpoint
+anywhere that returns what SPY options were quoted at on an arbitrary past
+date. Historical option data is either **bought**, or **accumulated going
+forward by recording chains daily**. A scraper pointed at a live chain endpoint
+starts producing usable history the day you turn it on, and not one day sooner.
+
+That is why this repo models option prices: not an oversight, a market.
+
+## Verified reachable and returning real data
+
+| Source | What it returns | Verified |
+|---|---|---|
+| **Alpha Vantage `HISTORICAL_OPTIONS`** | Full EOD chain for a past date | **yes — 998 IBM contracts for 2017-11-15** |
+| CBOE delayed quotes JSON | Current chain, greeks + OI | yes, 200 |
+| OptionsDX | Bulk EOD chain files, free w/ account | site 200, files not tested |
+| CBOE DataShop | Paid historical, 2004+ | site 200 |
+| historicaloptiondata.com | One-time purchase, ~2002+ | site 200 |
+| WRDS / OptionMetrics IvyDB | The academic standard, **1996+** | host 200 |
+
+Yahoo's option endpoint returned **401** when probed and should not be relied
+on. Polygon returned 401 without a key.
+
+## Alpha Vantage is the best free option, with one real catch
+
+One record carries everything this engine currently invents:
+
+```
+contractID  IBM171117C00075000     bid 70.45   ask 74.10   bid_size 4
+strike      75.00                  volume 0    open_interest 0
+implied_volatility 4.20990
+delta 0.98977  gamma 0.00059  theta -0.31401  vega 0.00296  rho 0.00402
+```
+
+Real bid/ask with sizes, IV and a full greek set. Feeding this in would let
+`OptionPricer`/`VolSurface` be **replaced by observation** rather than tuned.
+
+The catch is the rate limit. The free tier is ~25 requests/day and one request
+is one symbol-day, so **a single year of one symbol is ~252 requests** — around
+ten days of free-tier quota, or one paid month. Budget for the premium tier
+before planning a multi-symbol study.
+
+Depth is **unverified**: the demo key only answers for its one demo date. Get a
+free key and confirm how far back your symbols actually go before committing.
+
+## For the year 2000 specifically
+
+Alpha Vantage, OptionsDX, Polygon and ThetaData all start well after 2000.
+**OptionMetrics IvyDB (1996+) is essentially the only source that covers it**,
+and via WRDS it is free with a university affiliation and expensive without
+one. CBOE DataShop starts around 2004.
+
+So the choice is: buy 2000 coverage, or move the options study to an era where
+data is free. The modern era is also friendlier on the merits — zero
+commissions and penny ticks, versus the $15 + $1.75/contract that made a
+two-contract round trip cost ~4% of a $1,000 position in 2000.
+
+## On scraping, plainly
+
+Recording a live chain daily from a provider whose terms permit it is normal
+practice. Bulk-scraping a paid vendor's historical archive to avoid paying is
+both a terms violation and how you get your IP banned. Check the terms of any
+endpoint before pointing a recorder at it, and rate-limit it.
