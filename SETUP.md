@@ -17,26 +17,103 @@ look identical in a log and have opposite fixes.
 
 ## Setup
 
+Pick your shell. The commands differ more than you would like.
+
+### Windows (PowerShell)
+
+```powershell
+git clone https://github.com/KevinKearns1/Historical-Investing.git
+cd Historical-Investing
+# The repo's default branch is already the working branch -- no checkout needed.
+
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+
+python scripts\preflight.py       # expect "ALL CLEAR"
+python -m pytest tests\ -q        # expect 49 passed
+```
+
+Four Windows gotchas, in the order you will hit them:
+
+**1. `&&` is not valid in Windows PowerShell 5.1.** The version that ships with
+Windows parses it as an error (`The token '&&' is not a valid statement
+separator in this version`). Put each command on its own line, or use `;` to
+run them unconditionally. PowerShell 7+ supports `&&` normally.
+
+**2. `source .venv/bin/activate` is Linux.** On Windows the activation script
+lives elsewhere and is a `.ps1`:
+
+```powershell
+.\.venv\Scripts\Activate.ps1      # PowerShell
+.venv\Scripts\activate.bat        # cmd.exe
+```
+
+**3. Activation may be blocked by the execution policy.** If you see
+`cannot be loaded because running scripts is disabled on this system`:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
+```
+
+That relaxes the policy for this one terminal window only, not machine-wide.
+
+*Or skip activation entirely* — call the venv's interpreter directly. This
+always works, needs no policy change, and removes any doubt about which Python
+is running:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe scripts\preflight.py
+```
+
+**4. `python3` usually is not the command on Windows.** Use `python`, or `py -3`
+if you have the launcher. If typing `python` opens the Microsoft Store, Python
+is not properly installed — get it from [python.org](https://www.python.org/downloads/)
+and tick **"Add python.exe to PATH"** during install.
+
+To confirm you are in the right folder before starting, `dir` should list
+`requirements.txt`.
+
+### macOS / Linux
+
 ```bash
 git clone https://github.com/KevinKearns1/Historical-Investing.git
 cd Historical-Investing
-# The repo's default branch is claude/day-trading-backtester-2000-dc7lqg,
-# so a plain clone already checks out the work. No branch switch needed.
 
 python3 -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements.txt
 
 python3 scripts/preflight.py       # expect "ALL CLEAR"
 python3 -m pytest tests/ -q        # expect 49 passed
 ```
 
+### A note on `tzdata`
+
+`requirements.txt` includes `tzdata`, and on Windows it is **required**, not
+optional. Windows ships no IANA time zone database, and `engine/clock.py`
+builds `ZoneInfo("America/New_York")` at import time — so without it the whole
+package fails to import with `ZoneInfoNotFoundError`, before anything runs.
+Linux and macOS use their system database and ignore the package.
+
 ## Pull the data
 
+EDGAR requires a descriptive User-Agent with a real contact address or it
+returns 403. This is a genuine provider rule, not a workaround.
+
+```powershell
+# Windows PowerShell
+$env:EDGAR_USER_AGENT = "Kevin Kearns aspiringactuary111@gmail.com"
+```
+
 ```bash
-# EDGAR requires a descriptive User-Agent with a REAL contact address,
-# or it returns 403. This is a genuine provider rule, not a workaround.
+# macOS / Linux
 export EDGAR_USER_AGENT="Kevin Kearns aspiringactuary111@gmail.com"
+```
+
+```bash
 
 # Daily bars. 1999 start so a 250-day lookback exists on 2000-01-03.
 python3 scripts/fetch_data.py --start 1999-01-01 --end 2001-01-31
@@ -123,7 +200,19 @@ invented and produces numbers that mean nothing about 2000; it exists to prove
 the plumbing works.
 
 **EDGAR 403** — set `EDGAR_USER_AGENT` to a real name and email. This is
-EDGAR's documented requirement.
+EDGAR's documented requirement. On Windows use
+`$env:EDGAR_USER_AGENT = "..."`, and note it lasts only for that terminal
+session.
+
+**`ZoneInfoNotFoundError: No time zone found with key America/New_York`** —
+`pip install tzdata`. Windows has no system time zone database.
+
+**`The token '&&' is not a valid statement separator`** — Windows PowerShell
+5.1. Run the commands on separate lines.
+
+**`Activate.ps1 cannot be loaded because running scripts is disabled`** —
+`Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`, or bypass
+activation entirely with `.\.venv\Scripts\python.exe <script>`.
 
 **yfinance returns nothing for a symbol** — usually a delisted company. Expected
 for the 2000 universe, and reported rather than hidden.

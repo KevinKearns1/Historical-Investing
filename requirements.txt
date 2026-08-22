@@ -3,3 +3,12 @@ pandas>=2.0
 numpy>=1.24
 scipy>=1.10
 PyYAML>=6.0
+
+# Windows ships no IANA time zone database, so zoneinfo.ZoneInfo() cannot
+# resolve "America/New_York" without this. engine/clock.py builds that zone at
+# import time, so the whole package fails to import without it. Harmless
+# elsewhere -- Linux and macOS use their system database and ignore it.
+tzdata>=2024.1
+
+# Test runner.
+pytest>=7.0

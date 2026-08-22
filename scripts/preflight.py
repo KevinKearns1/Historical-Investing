@@ -43,7 +43,27 @@ CHECKS = [
 ]
 
 GREEN, RED, YELLOW, DIM, RESET = "\033[32m", "\033[31m", "\033[33m", "\033[2m", "\033[0m"
-if not sys.stdout.isatty():
+
+
+def _supports_colour() -> bool:
+    if not sys.stdout.isatty():
+        return False
+    if os.name != "nt":
+        return True
+    # Windows Terminal and modern conhost handle ANSI; older consoles print the
+    # escape codes as literal garbage, so try to switch VT processing on and
+    # fall back to plain text if that fails.
+    if os.environ.get("WT_SESSION") or os.environ.get("ANSICON"):
+        return True
+    try:
+        import ctypes
+        k = ctypes.windll.kernel32
+        return bool(k.SetConsoleMode(k.GetStdHandle(-11), 7))
+    except Exception:                                            # noqa: BLE001
+        return False
+
+
+if not _supports_colour():
     GREEN = RED = YELLOW = DIM = RESET = ""
 
 

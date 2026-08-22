@@ -129,6 +129,11 @@ matches a multiple of 30. The scheduler now uses elapsed-minutes-since-last-call
 account's allowance and starved the other nine. Hence
 `max_new_trades_per_strategy_per_day`.
 
+**Windows has no IANA time zone database.** `engine/clock.py` builds
+`ZoneInfo("America/New_York")` at import time, so the package will not import on
+Windows without the `tzdata` package. It is in `requirements.txt` for that
+reason -- do not drop it as an unused dependency.
+
 **Opening-range thresholds calibrated wrong.** An opening 30-minute range is
 roughly a third to a half of a daily ATR, not 80%+. The original floor made the
 setup unreachable.
@@ -136,6 +141,9 @@ setup unreachable.
 ---
 
 ## Commands
+
+On Windows use `python` and `.\.venv\Scripts\python.exe`; PowerShell 5.1 has
+no `&&`, so run commands on separate lines. See SETUP.md.
 
 ```bash
 python3 scripts/preflight.py                    # can this machine reach the data?
