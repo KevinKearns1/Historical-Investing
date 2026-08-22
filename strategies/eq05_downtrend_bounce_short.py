@@ -96,7 +96,9 @@ class DowntrendBounceShort(Strategy):
         fill = ctx.broker.market_order(sym, qty, self.name, note="bounce short")
         if fill.ok:
             ctx.risk.note_trade(self.name)
-            pos = ctx.pf.equities[sym]
+            pos = ctx.pf.equities.get(sym)
+            if pos is None:
+                return          # fill netted flat; nothing to attach a stop to
             pos.stop = stop
             r = abs(fill.price - stop)
             pos.target = max(session_low, fill.price - 2.0 * r)

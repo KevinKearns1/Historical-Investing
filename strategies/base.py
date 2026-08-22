@@ -52,6 +52,15 @@ class Strategy:
         to strategy A's position nets the position to flat: the fill reports
         ok, `ctx.pf.equities[sym]` no longer exists, and A's stop silently
         vanishes. Real 2000 data hit exactly this on SPY.
+
+        This deliberately refuses a symbol the CALLING strategy already holds,
+        not just one another strategy holds. A strategy resets its per-session
+        "already traded this" set each morning, but a position whose closing
+        order was REJECTED at the bell survives overnight -- so the next day it
+        can signal the opposite way on a name it still owns and net itself to
+        flat. That is the same corruption, self-inflicted, and it is why this
+        is not `pos.strategy == self.name`. It showed up only on some runs:
+        set iteration order varies between processes, so the trade sequence
+        does too.
         """
-        pos = ctx.pf.equities.get(sym)
-        return pos is None or pos.strategy == self.name
+        return ctx.pf.equities.get(sym) is None

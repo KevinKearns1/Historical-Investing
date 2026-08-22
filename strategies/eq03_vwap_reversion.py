@@ -84,7 +84,9 @@ class VWAPReversion(Strategy):
             ctx.risk.note_trade(self.name)
             self.state["count"][sym] = self.state["count"].get(sym, 0) + 1
             self.state["entries"][sym] = ctx.minute_index
-            pos = ctx.pf.equities[sym]
+            pos = ctx.pf.equities.get(sym)
+            if pos is None:
+                return          # fill netted flat; nothing to attach a stop to
             pos.stop = float(stop)
             pos.target = float(vwap)
             self.log(ctx, f"fade {'S' if side<0 else 'L'} {abs(qty)} {sym} z={z:+.2f} "

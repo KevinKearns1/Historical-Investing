@@ -106,7 +106,9 @@ class GapTrade(Strategy):
         if fill.ok:
             self.state["taken"].add(sym)
             ctx.risk.note_trade(self.name)
-            pos = ctx.pf.equities[sym]
+            pos = ctx.pf.equities.get(sym)
+            if pos is None:
+                return          # fill netted flat; nothing to attach a stop to
             pos.stop = stop
             r = abs(fill.price - stop)
             pos.target = plan["target"] or (fill.price + side * 2.0 * r)

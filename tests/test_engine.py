@@ -169,3 +169,51 @@ def test_costs_are_2000_sized():
     assert c.option_base + c.option_per_contract >= 15.0
     # A 2-contract options round trip must cost meaningfully more than today.
     assert c.option_fees(2, 3.0, False) + c.option_fees(2, 4.0, True) > 35.0
+
+
+# -- one owner per symbol ------------------------------------------------
+class _Ctx:
+    """Minimal stand-in: symbol_is_free only ever reads ctx.pf.equities."""
+    def __init__(self, pf):
+        self.pf = pf
+
+
+def test_strategy_refuses_a_symbol_another_strategy_holds():
+    """The portfolio nets per symbol, as a real account does. Entering
+    opposite to another strategy's position would net it to flat, deleting
+    that strategy's stop with no error anywhere. Real 2000 data hit this."""
+    from strategies.base import Strategy
+
+    pf = Portfolio(starting_cash=25_000.0)
+    pf.apply_equity_fill(None, "SPY", 100, 145.0, 10.0, "EQ-05 Downtrend Bounce Short")
+    s = Strategy(name="EQ-01 Opening Range Breakout")
+    assert s.symbol_is_free(_Ctx(pf), "SPY") is False
+    assert s.symbol_is_free(_Ctx(pf), "QQQ") is True
+
+
+def test_strategy_refuses_a_symbol_it_still_holds_itself():
+    """The subtler half, and the one that only appeared on some runs.
+
+    A strategy clears its per-session "already traded" set every morning, but
+    a position whose closing order was REJECTED at the bell survives
+    overnight. The next day the strategy can signal the opposite way on a name
+    it still owns and net ITSELF to flat -- so the guard cannot key on
+    ownership. Set iteration order varies between processes, which is why this
+    reproduced only intermittently.
+    """
+    from strategies.base import Strategy
+
+    name = "EQ-01 Opening Range Breakout"
+    pf = Portfolio(starting_cash=25_000.0)
+    pf.apply_equity_fill(None, "DIA", 50, 110.0, 10.0, name)   # stuck overnight
+    s = Strategy(name=name)
+    assert s.symbol_is_free(_Ctx(pf), "DIA") is False
+
+
+def test_opposing_fill_nets_to_flat_and_deletes_the_position():
+    """Documents the underlying mechanic the guard exists to prevent."""
+    pf = Portfolio(starting_cash=25_000.0)
+    pf.apply_equity_fill(None, "DIA", 50, 110.0, 10.0, "A")
+    assert "DIA" in pf.equities
+    pf.apply_equity_fill(None, "DIA", -50, 111.0, 10.0, "B")
+    assert "DIA" not in pf.equities        # gone, with no error raised

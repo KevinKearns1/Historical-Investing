@@ -84,7 +84,10 @@ class MomentumRotation(Strategy):
             fill = ctx.broker.market_order(sym, qty, self.name, note="momentum long")
             if fill.ok:
                 ctx.risk.note_trade(self.name)
-                ctx.pf.equities[sym].stop = stop
+                held = ctx.pf.equities.get(sym)
+                if held is None:
+                    continue    # fill netted flat; nothing to attach a stop to
+                held.stop = stop
                 self.log(ctx, f"LONG {qty} {sym} @ {fill.price:.4f} stop {stop:.4f}")
         self.state["done"] = True
 

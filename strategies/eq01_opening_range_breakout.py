@@ -102,7 +102,9 @@ class OpeningRangeBreakout(Strategy):
         if fill.ok:
             self.state["taken"].add(sym)
             ctx.risk.note_trade(self.name)
-            pos = ctx.pf.equities[sym]
+            pos = ctx.pf.equities.get(sym)
+            if pos is None:
+                return          # fill netted flat; nothing to attach a stop to
             pos.stop = stop
             pos.target = fill.price + side * 2.0 * abs(fill.price - stop)
             self.log(ctx, f"{'LONG' if side>0 else 'SHORT'} {abs(qty)} {sym} @ {fill.price:.4f} "
