@@ -44,7 +44,9 @@ import argparse
 import json
 import os
 import sys
+import gzip
 import time
+import zlib
 import urllib.request
 from datetime import date, datetime
 
@@ -71,6 +73,13 @@ def _get(url: str, retries: int = 4) -> bytes:
         try:
             with urllib.request.urlopen(req, timeout=30) as r:
                 data = r.read()
+                # We advertise gzip above, and EDGAR takes us up on it. Without
+                # this the JSON parse dies on byte 0x8b of the gzip magic.
+                enc = (r.headers.get("Content-Encoding") or "").lower()
+            if enc == "gzip":
+                data = gzip.decompress(data)
+            elif enc == "deflate":
+                data = zlib.decompress(data, -zlib.MAX_WBITS)
             time.sleep(0.11)          # EDGAR fair-access: <=10 req/sec
             return data
         except Exception as e:                                   # noqa: BLE001
@@ -97,9 +106,16 @@ def resolve_cik(symbol: str, tmap: dict, overrides: dict) -> int | None:
     return tmap.get(symbol.upper())
 
 
-def earnings_filings(cik: int, start: date, end: date) -> list[dict]:
+def earnings_filings(cik: int, start: date, end: date) -> tuple[list[dict], dict]:
+    """Returns (earnings 8-Ks in window, entity metadata).
+
+    The metadata exists so the caller can check that this CIK is the entity
+    that actually traded under the ticker during the window -- see
+    `entity_covers_window`.
+    """
     sub = json.loads(_get(SUBMISSIONS_URL.format(cik=cik)))
     out = []
+    all_dates: list[str] = []
     blocks = [sub.get("filings", {}).get("recent", {})]
     # Older filings live in separate index files EDGAR points at.
     for extra in sub.get("filings", {}).get("files", []) or []:
@@ -109,6 +125,7 @@ def earnings_filings(cik: int, start: date, end: date) -> list[dict]:
             print(f"    could not read {extra.get('name')}: {e}")
 
     for b in blocks:
+        all_dates.extend([d for d in b.get("filingDate", []) if d])
         forms = b.get("form", [])
         for i, form in enumerate(forms):
             if not str(form).startswith("8-K"):
@@ -139,7 +156,36 @@ def earnings_filings(cik: int, start: date, end: date) -> list[dict]:
                 "confidence": conf,
             })
     out.sort(key=lambda x: x["date"])
-    return out
+    meta = {
+        "name": sub.get("name", ""),
+        "first_filing": min(all_dates) if all_dates else None,
+        "last_filing": max(all_dates) if all_dates else None,
+    }
+    return out, meta
+
+
+def entity_covers_window(meta: dict, start: date, end: date) -> bool:
+    """Does this EDGAR entity actually have a filing history overlapping the
+    simulated window?
+
+    EDGAR's ticker map resolves a ticker to whoever owns it TODAY, which is not
+    who traded under it in 2000. Observed on a real run:
+
+        ORCL -> Oracle Corp        (the 2005 holding entity, first filing 2016)
+        DELL -> Dell Technologies  (the 2013 re-IPO entity, not Dell Computer)
+        XOM  -> ExxonMobil Holdings Corp        (first filing 2026)
+        LU   -> Lufax Holding Ltd  -- in 2000 LU was LUCENT
+
+    The first three merely return nothing. LU is the dangerous one: a totally
+    unrelated company. Had Lufax filed anything in 1999-2001 those dates would
+    have been attached to Lucent silently -- the same failure mode a wrong CIK
+    in cik_overrides.yml causes, arriving instead through EDGAR's own map.
+    """
+    if not meta.get("first_filing") or not meta.get("last_filing"):
+        return False
+    first = datetime.strptime(meta["first_filing"], "%Y-%m-%d").date()
+    last = datetime.strptime(meta["last_filing"], "%Y-%m-%d").date()
+    return first <= end and last >= start
 
 
 def main() -> int:
@@ -171,7 +217,7 @@ def main() -> int:
     print("resolving tickers to CIKs via EDGAR...")
     tmap = load_ticker_cik_map()
 
-    result, unresolved = {}, []
+    result, unresolved, reassigned = {}, [], {}
     for sym in symbols:
         cik = resolve_cik(sym, tmap, overrides)
         if cik is None:
@@ -179,10 +225,21 @@ def main() -> int:
             print(f"  {sym:8s} NO CIK -- add it to config/cik_overrides.yml")
             continue
         try:
-            fil = earnings_filings(cik, start, end)
+            fil, meta = earnings_filings(cik, start, end)
         except Exception as e:                                   # noqa: BLE001
             print(f"  {sym:8s} ERROR {e}")
             unresolved.append(sym)
+            continue
+        if not entity_covers_window(meta, start, end):
+            unresolved.append(sym)
+            reassigned[sym] = {"cik": cik, "edgar_name": meta.get("name", ""),
+                               "first_filing": meta.get("first_filing"),
+                               "last_filing": meta.get("last_filing")}
+            print(f"  {sym:8s} CIK {cik:<10d} WRONG ENTITY -- "
+                  f"{meta.get('name','?')!r} filed "
+                  f"{meta.get('first_filing')}..{meta.get('last_filing')}, "
+                  f"nothing in window. Ticker was reassigned; find the "
+                  f"period CIK and put it in cik_overrides.yml")
             continue
         result[sym] = fil
         hi = sum(1 for x in fil if x["confidence"] in ("high", "medium"))
@@ -198,6 +255,7 @@ def main() -> int:
                  "because that numbering did not exist; those carry confidence "
                  "medium/low and should be spot-checked against the filing text."),
         "unresolved_symbols": unresolved,
+        "ticker_reassigned": reassigned,
         "filings": result,
     }
     path = os.path.join(ROOT, a.out)
