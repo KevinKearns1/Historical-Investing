@@ -44,13 +44,55 @@ def load_yaml(p):
         return yaml.safe_load(f)
 
 
+def load_earnings(path: str | None = None) -> tuple[dict, dict]:
+    """OP-04's event dates.
+
+    Prefers config/earnings_verified.yml -- SEC EDGAR 8-K filing dates, where
+    the date IS the moment the announcement became public. Falls back to the
+    hand-entered approximate dates only if the verified file is absent, and
+    says which it used, because OP-04's whole premise is comparing an implied
+    move to what the stock did on real event days. Approximate dates silently
+    misdate the event and the comparison means nothing.
+
+    Only high/medium confidence filings are used. Pre-2004 8-Ks cannot be
+    identified by item code (Item 2.02 did not exist until 2004-08-23), so
+    2000-era dates are medium at best -- see the fetcher.
+    """
+    if path is None:
+        cand = os.path.join(ROOT, "config/earnings_verified.yml")
+        path = "config/earnings_verified.yml" if os.path.exists(cand)             else "config/earnings_2000.yml"
+    cfg = load_yaml(path)
+
+    if isinstance(cfg.get("filings"), dict):           # verified EDGAR format
+        out: dict[str, list] = {}
+        dropped = 0
+        for sym, rows in cfg["filings"].items():
+            dates = []
+            for r in rows:
+                if r.get("confidence") == "low":
+                    dropped += 1
+                    continue
+                dates.append(datetime.strptime(r["date"], "%Y-%m-%d").date())
+            if dates:
+                out[sym] = sorted(set(dates))
+        n = sum(len(v) for v in out.values())
+        print(f"earnings: {n:,} EDGAR-verified dates across {len(out)} symbols "
+              f"({dropped} low-confidence dropped)  [{path}]")
+        return cfg, out
+
+    out = {k: [datetime.strptime(d, "%Y-%m-%d").date() for d in v]
+           for k, v in cfg.items()
+           if isinstance(v, list) and k not in ("verified", "note")}
+    print(f"earnings: APPROXIMATE dates for {len(out)} symbols [{path}] -- "
+          f"OP-04 results are indicative only. Run "
+          f"scripts/fetch_earnings_edgar.py to verify.")
+    return cfg, out
+
+
 def build_strategies(cfg, uni):
     eq = cfg["sleeves"]["equity"] / 5.0
     op = cfg["sleeves"]["options"] / 5.0
-    earn_cfg = load_yaml("config/earnings_2000.yml")
-    earnings = {k: [datetime.strptime(d, "%Y-%m-%d").date() for d in v]
-                for k, v in earn_cfg.items()
-                if isinstance(v, list) and k not in ("verified", "note")}
+    earn_cfg, earnings = load_earnings()
     return [
         OpeningRangeBreakout(capital=eq),
         GapTrade(capital=eq),
