@@ -33,21 +33,49 @@ tried to step the clock backwards.
 
 ## Current state — read this before claiming any result
 
-**The engine has NEVER been run against real market data.** Every run so far
-used `scripts/make_demo_data.py`, which generates clearly-labelled synthetic
-prices. Those runs prove the plumbing works and say **nothing** about whether
-any strategy would have made money.
+**The engine has now been run on real market data.** Real Yahoo daily bars for
+27 symbols, 1998-2021, plus 354 EDGAR-verified earnings dates and
+period-correct CIKs for all 30 universe symbols. `scripts/preflight.py` passes
+on the local Windows machine; the egress block described below applied only to
+the cloud environment this was built in.
 
-The cloud environment this was built in blocks every financial data host at its
-egress proxy. Running locally fixes it — `scripts/preflight.py` verifies a
-machine can reach the data and distinguishes a proxy denial from a genuine
-provider block.
+**The result is decisively negative, and it is a real finding.**
 
-So: **any P&L number in this repo's history is a self-test, not a finding.**
-When real data lands, expect to re-tune. Several strategy thresholds were
-calibrated against synthetic data and are placeholders.
+Walk-forward 1999-2021, `--is-years 5`, `--minute-step 15`:
 
----
+| | in-sample 1999-2003 | out-of-sample 2004-2021 |
+|---|---|---|
+| mean return | -22.6% | **-11.5%** |
+| beat cash | 20% of years | **11%** (2 of 18) |
+| years halted by the 20% kill switch | 5 of 5 | **17 of 18** |
+
+Out-of-sample t-statistic **-3.50**. Note the sign: this is not "too few
+observations to tell", it is reliably negative across four regimes,
+decimalization, and the end of the uptick rule. 2020 is the only unhalted year.
+
+**Transaction costs are the largest single term.** Mean fee drag is ~15% of
+starting capital per year at 300-1800 round trips on a $25k account. Gross of
+fees the mean is +1.1% with 11 of 23 years positive — a coin flip. So there are
+two stacked problems, and removing the expensive one only reveals there was
+never an edge underneath it.
+
+**Do not read any single year closely.** `real_bars` was 0.0% in every year —
+all intraday paths are reconstructed. Five seeds on 2000 return -44.98%,
+-51.03%, -49.29%, -47.02%, -52.97%: an **8% spread** on identical real daily
+data. EQ-03's gross P&L swung 4.7x across seeds, so "EQ-03 has a small real
+edge eaten by commissions" is NOT established — only the cost drag is, since
+that is arithmetic on real trade counts.
+
+**The engine is not reproducible across processes.** Strategies iterate `set`s
+(`state["taken"]`, `state["be_moved"]`), and set iteration order varies with
+hash randomization, so the trade sequence differs between runs with identical
+inputs. This is how the DIA netting crash appeared on one run and not the next.
+Fix this before anyone audits a number.
+
+**Suggested direction.** Daily bars are the only real data here. Day trading is
+where the data is weakest and costs bite hardest — the worst place to look for
+a durable signal with what exists. A daily-decision, days-to-weeks-hold
+strategy would rest entirely on real data and cut turnover 50-100x.
 
 ## Layout
 
@@ -133,6 +161,28 @@ account's allowance and starved the other nine. Hence
 `ZoneInfo("America/New_York")` at import time, so the package will not import on
 Windows without the `tzdata` package. It is in `requirements.txt` for that
 reason -- do not drop it as an unused dependency.
+
+**A fill can report ok and create no position.** The portfolio nets per symbol,
+as a real account does. A strategy entering opposite an existing position nets
+it to flat and the position is deleted -- silently. The crash (`KeyError` on
+`ctx.pf.equities[sym]`) was the lucky case; the quiet case is a live position
+losing its stop. `Strategy.symbol_is_free` refuses any held symbol, and it
+cannot key on ownership: a close rejected at the 15:55 flatten survives
+overnight, and the per-session "taken" set resets each morning, so a strategy
+will happily net *itself* to flat the next day.
+
+**EDGAR's ticker map resolves who owns a ticker TODAY.** In 2000, `LU` was
+Lucent; today it is Lufax Holding, an unrelated Chinese fintech. `ORCL`, `DELL`
+and `XOM` point at later holding entities. `entity_covers_window()` rejects a
+CIK whose filing history misses the simulated window. Period-correct CIKs are
+in `config/cik_overrides.yml`, each with EDGAR's own `formerNames` as evidence
+-- regenerate with `scripts/resolve_ciks.py`, which prints evidence and writes
+nothing on purpose.
+
+**The universe must be pruned everywhere, not just on the Backtest.**
+`prepare()` rebinds `self.universe` to a new list, so `ctx.universe` and any
+strategy-held list (OP-03's `value_universe`) keep the unpruned one and hand a
+strategy a delisted symbol the feed never loaded.
 
 **Opening-range thresholds calibrated wrong.** An opening 30-minute range is
 roughly a third to a half of a daily ATR, not 80%+. The original floor made the
