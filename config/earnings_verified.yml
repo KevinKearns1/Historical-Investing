@@ -1,6 +1,6 @@
 verified: true
 source: SEC EDGAR 8-K filings (data.sec.gov submissions API)
-generated: '2026-08-22T02:27:54.972118Z'
+generated: '2026-08-22T02:30:30.723491Z'
 range:
 - '1999-01-01'
 - '2001-06-30'
@@ -8,40 +8,8 @@ note: Dates are EDGAR filing dates -- the date the announcement became public. P
   filings cannot be identified by item 2.02 because that numbering did not exist;
   those carry confidence medium/low and should be spot-checked against the filing
   text.
-unresolved_symbols:
-- ORCL
-- DELL
-- YHOO
-- JDSU
-- CMGI
-- BRCM
-- SUNW
-- LU
-- NT
-- WCOM
-- ARBA
-- XOM
-ticker_reassigned:
-  ORCL:
-    cik: 1341439
-    edgar_name: ORACLE CORP
-    first_filing: '2005-10-19'
-    last_filing: '2026-07-28'
-  DELL:
-    cik: 1571996
-    edgar_name: Dell Technologies Inc.
-    first_filing: '2013-07-24'
-    last_filing: '2026-07-24'
-  LU:
-    cik: 1816007
-    edgar_name: Lufax Holding Ltd
-    first_filing: '2020-07-28'
-    last_filing: '2026-08-20'
-  XOM:
-    cik: 2115436
-    edgar_name: ExxonMobil Holdings Corp
-    first_filing: '2026-07-01'
-    last_filing: '2026-08-03'
+unresolved_symbols: []
+ticker_reassigned: {}
 filings:
   MSFT:
   - date: '1999-07-19'
@@ -406,6 +374,8 @@ filings:
     items: 5,7
     acceptance: '2001-05-11T04:00:00.000Z'
     confidence: medium
+  ORCL: []
+  DELL: []
   AAPL:
   - date: '2000-01-24'
     accession: 0000912057-00-002128
@@ -597,6 +567,139 @@ filings:
     items: '9'
     acceptance: '2001-04-13T04:00:00.000Z'
     confidence: medium
+  YHOO:
+  - date: '1999-01-13'
+    accession: 0001047469-99-001083
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-01-13T05:00:00.000Z'
+    confidence: medium
+  - date: '1999-01-29'
+    accession: 0001047469-99-002569
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-01-29T05:00:00.000Z'
+    confidence: medium
+  - date: '1999-04-05'
+    accession: 0001047469-99-013634
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-04-05T04:00:00.000Z'
+    confidence: medium
+  - date: '1999-04-08'
+    accession: 0001047469-99-013985
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-04-08T04:00:00.000Z'
+    confidence: medium
+  - date: '1999-04-19'
+    accession: 0001047469-99-015362
+    form: 8-K/A
+    items: 5,7
+    acceptance: '1999-04-19T04:00:00.000Z'
+    confidence: medium
+  - date: '1999-06-02'
+    accession: 0001047469-99-022911
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-06-02T04:00:00.000Z'
+    confidence: medium
+  - date: '1999-07-08'
+    accession: 0001047469-99-026618
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-07-08T04:00:00.000Z'
+    confidence: medium
+  - date: '1999-10-07'
+    accession: 0001047469-99-038084
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-10-07T04:00:00.000Z'
+    confidence: medium
+  - date: '2000-01-12'
+    accession: 0000912057-00-000968
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-01-12T05:00:00.000Z'
+    confidence: medium
+  - date: '2000-04-06'
+    accession: 0000912057-00-016486
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-04-06T04:00:00.000Z'
+    confidence: medium
+  - date: '2000-06-29'
+    accession: 0000912057-00-030453
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-06-29T19:45:00.000Z'
+    confidence: medium
+  - date: '2000-07-12'
+    accession: 0000912057-00-031620
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-07-12T17:38:00.000Z'
+    confidence: medium
+  - date: '2000-08-11'
+    accession: 0000912057-00-036624
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-08-11T19:52:00.000Z'
+    confidence: medium
+  - date: '2000-09-01'
+    accession: 0000912057-00-039992
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-09-01T20:56:00.000Z'
+    confidence: medium
+  - date: '2000-09-22'
+    accession: 0000912057-00-042336
+    form: 8-K/A
+    items: 5,7
+    acceptance: '2000-09-22T21:04:00.000Z'
+    confidence: medium
+  - date: '2000-10-11'
+    accession: 0000912057-00-044467
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-10-11T20:56:00.000Z'
+    confidence: medium
+  - date: '2001-01-10'
+    accession: 0000912057-01-000998
+    form: 8-K
+    items: 5,7
+    acceptance: '2001-01-10T22:27:00.000Z'
+    confidence: medium
+  - date: '2001-01-19'
+    accession: 0000912057-01-002192
+    form: 8-K/A
+    items: 5,7
+    acceptance: '2001-01-19T20:35:00.000Z'
+    confidence: medium
+  - date: '2001-03-08'
+    accession: 0000912057-01-007396
+    form: 8-K
+    items: 5,7
+    acceptance: '2001-03-08T22:03:00.000Z'
+    confidence: medium
+  - date: '2001-03-19'
+    accession: 0000912057-01-007754
+    form: 8-K
+    items: 5,7
+    acceptance: '2001-03-19T22:03:00.000Z'
+    confidence: medium
+  - date: '2001-04-12'
+    accession: 0000912057-01-508433
+    form: 8-K
+    items: 5,7
+    acceptance: '2001-04-12T04:00:00.000Z'
+    confidence: medium
+  - date: '2001-04-17'
+    accession: 0000912057-01-509174
+    form: 8-K
+    items: 5,7
+    acceptance: '2001-04-17T04:00:00.000Z'
+    confidence: medium
   EBAY:
   - date: '1999-07-26'
     accession: 0001012870-99-002508
@@ -627,6 +730,848 @@ filings:
     form: 8-K
     items: 5,7
     acceptance: '2001-01-16T05:00:00.000Z'
+    confidence: medium
+  JDSU:
+  - date: '1999-01-08'
+    accession: 0000912093-99-000002
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-01-08T05:00:00.000Z'
+    confidence: medium
+  - date: '1999-04-29'
+    accession: 0000912093-99-000017
+    form: 8-K/A
+    items: 5,7
+    acceptance: '1999-04-29T04:00:00.000Z'
+    confidence: medium
+  - date: '1999-10-04'
+    accession: 0000912093-99-000083
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-10-04T04:00:00.000Z'
+    confidence: medium
+  - date: '1999-11-05'
+    accession: 0000912093-99-000099
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-11-05T05:00:00.000Z'
+    confidence: medium
+  - date: '1999-11-30'
+    accession: 0000912093-99-000100
+    form: 8-K/A
+    items: 5,7
+    acceptance: '1999-11-30T05:00:00.000Z'
+    confidence: medium
+  - date: '2000-01-18'
+    accession: 0000912093-00-000004
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-01-18T05:00:00.000Z'
+    confidence: medium
+  - date: '2000-01-28'
+    accession: 0000950149-00-000098
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-01-28T05:00:00.000Z'
+    confidence: medium
+  - date: '2000-09-01'
+    accession: 0000912093-00-000033
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-09-01T04:00:00.000Z'
+    confidence: medium
+  - date: '2000-11-13'
+    accession: 0001095811-00-004560
+    form: 8-K
+    items: 7,9
+    acceptance: '2000-11-13T05:00:00.000Z'
+    confidence: medium
+  - date: '2000-12-08'
+    accession: 0000912093-00-500029
+    form: 8-K
+    items: '5'
+    acceptance: '2000-12-08T05:00:00.000Z'
+    confidence: medium
+  - date: '2001-01-31'
+    accession: 0000891618-01-000099
+    form: 8-K
+    items: 7,9
+    acceptance: '2001-01-31T05:00:00.000Z'
+    confidence: medium
+  - date: '2001-02-01'
+    accession: 0001095811-01-000588
+    form: 8-K/A
+    items: 7,9
+    acceptance: '2001-02-01T05:00:00.000Z'
+    confidence: medium
+  - date: '2001-02-06'
+    accession: 0001095811-01-000696
+    form: 8-K
+    items: 5,7
+    acceptance: '2001-02-06T05:00:00.000Z'
+    confidence: medium
+  - date: '2001-02-14'
+    accession: 0001095811-01-001230
+    form: 8-K
+    items: 7,9
+    acceptance: '2001-02-14T05:00:00.000Z'
+    confidence: medium
+  - date: '2001-02-28'
+    accession: 0000891618-01-500085
+    form: 8-K
+    items: '5'
+    acceptance: '2001-02-28T05:00:00.000Z'
+    confidence: medium
+  - date: '2001-03-06'
+    accession: 0000891618-01-500159
+    form: 8-K
+    items: '9'
+    acceptance: '2001-03-06T05:00:00.000Z'
+    confidence: medium
+  - date: '2001-04-24'
+    accession: 0000891618-01-500376
+    form: 8-K
+    items: 7,9
+    acceptance: '2001-04-24T04:00:00.000Z'
+    confidence: medium
+  - date: '2001-05-04'
+    accession: 0000891618-01-500539
+    form: 8-K
+    items: 7,9
+    acceptance: '2001-05-04T04:00:00.000Z'
+    confidence: medium
+  - date: '2001-05-10'
+    accession: 0000891618-01-500631
+    form: 8-K/A
+    items: '9'
+    acceptance: '2001-05-10T04:00:00.000Z'
+    confidence: medium
+  - date: '2001-06-06'
+    accession: 0000912093-01-500014
+    form: 8-K
+    items: '5'
+    acceptance: '2001-06-06T04:00:00.000Z'
+    confidence: medium
+  - date: '2001-06-14'
+    accession: 0000912093-01-500016
+    form: 8-K
+    items: 7,9
+    acceptance: '2001-06-14T04:00:00.000Z'
+    confidence: medium
+  CMGI:
+  - date: '1999-01-07'
+    accession: 0000927016-99-000025
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-01-07T05:00:00.000Z'
+    confidence: medium
+  - date: '1999-05-07'
+    accession: 0000927016-99-001848
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-05-07T04:00:00.000Z'
+    confidence: medium
+  - date: '1999-07-07'
+    accession: 0000927016-99-002537
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-07-07T04:00:00.000Z'
+    confidence: medium
+  - date: '1999-07-14'
+    accession: 0000927016-99-002585
+    form: 8-K
+    items: '5'
+    acceptance: '1999-07-14T04:00:00.000Z'
+    confidence: medium
+  - date: '1999-08-12'
+    accession: 0000927016-99-002931
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-08-12T04:00:00.000Z'
+    confidence: medium
+  - date: '1999-09-03'
+    accession: 0000927016-99-003164
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-09-03T04:00:00.000Z'
+    confidence: medium
+  - date: '1999-09-27'
+    accession: 0000927016-99-003311
+    form: 8-K
+    items: '5'
+    acceptance: '1999-09-27T04:00:00.000Z'
+    confidence: medium
+  - date: '1999-10-01'
+    accession: 0000927016-99-003349
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-10-01T04:00:00.000Z'
+    confidence: medium
+  - date: '1999-12-17'
+    accession: 0000927016-99-003968
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-12-17T05:00:00.000Z'
+    confidence: medium
+  - date: '2000-01-24'
+    accession: 0000927016-00-000151
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-01-24T05:00:00.000Z'
+    confidence: medium
+  - date: '2000-02-22'
+    accession: 0000927016-00-000655
+    form: 8-K
+    items: '5'
+    acceptance: '2000-02-22T05:00:00.000Z'
+    confidence: medium
+  - date: '2000-03-03'
+    accession: 0000950172-00-000458
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-03-03T05:00:00.000Z'
+    confidence: medium
+  - date: '2000-03-09'
+    accession: 0000927016-00-000813
+    form: 8-K
+    items: '5'
+    acceptance: '2000-03-09T05:00:00.000Z'
+    confidence: medium
+  - date: '2000-05-25'
+    accession: 0000927016-00-002014
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-05-25T04:00:00.000Z'
+    confidence: medium
+  - date: '2000-08-17'
+    accession: 0000927016-00-003071
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-08-17T04:00:00.000Z'
+    confidence: medium
+  - date: '2000-08-18'
+    accession: 0000927016-00-003092
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-08-18T04:00:00.000Z'
+    confidence: medium
+  - date: '2000-11-17'
+    accession: 0000927016-00-004123
+    form: 8-K
+    items: '9'
+    acceptance: '2000-11-17T05:00:00.000Z'
+    confidence: medium
+  - date: '2001-01-16'
+    accession: 0000927016-01-000141
+    form: 8-K
+    items: '5'
+    acceptance: '2001-01-16T05:00:00.000Z'
+    confidence: medium
+  BRCM:
+  - date: '1999-01-27'
+    accession: 0000892569-99-000137
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-01-27T00:00:00.000Z'
+    confidence: medium
+  - date: '1999-04-28'
+    accession: 0000892569-99-001153
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-04-28T00:00:00.000Z'
+    confidence: medium
+  - date: '1999-06-01'
+    accession: 0000892569-99-001629
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-06-01T00:00:00.000Z'
+    confidence: medium
+  - date: '1999-06-23'
+    accession: 0000892569-99-001762
+    form: 8-K
+    items: '5'
+    acceptance: '1999-06-23T00:00:00.000Z'
+    confidence: medium
+  - date: '1999-07-21'
+    accession: 0000892569-99-001965
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-07-21T00:00:00.000Z'
+    confidence: medium
+  - date: '1999-08-12'
+    accession: 0000892569-99-002180
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-08-12T00:00:00.000Z'
+    confidence: medium
+  - date: '1999-09-01'
+    accession: 0000892569-99-002374
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-09-01T00:00:00.000Z'
+    confidence: medium
+  - date: '1999-09-17'
+    accession: 0000892569-99-002479
+    form: 8-K/A
+    items: '5'
+    acceptance: '1999-09-17T00:00:00.000Z'
+    confidence: medium
+  - date: '1999-09-28'
+    accession: 0000892569-99-002556
+    form: 8-K
+    items: '5'
+    acceptance: '1999-09-28T00:00:00.000Z'
+    confidence: medium
+  - date: '1999-11-24'
+    accession: 0000892569-99-003179
+    form: 8-K/A
+    items: '5'
+    acceptance: '1999-11-24T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-02-01'
+    accession: 0001095811-00-000088
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-02-01T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-02-29'
+    accession: 0000892569-00-000264
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-02-29T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-03-06'
+    accession: 0000892569-00-000280
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-03-06T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-03-24'
+    accession: 0001095811-00-000687
+    form: 8-K
+    items: '5'
+    acceptance: '2000-03-24T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-06-02'
+    accession: 0001095811-00-001634
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-06-02T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-06-14'
+    accession: 0001095811-00-001720
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-06-14T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-06-30'
+    accession: 0001095811-00-001883
+    form: 8-K
+    items: '5'
+    acceptance: '2000-06-30T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-07-10'
+    accession: 0000892569-00-000443
+    form: 8-K/A
+    items: 5,7
+    acceptance: '2000-07-10T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-07-21'
+    accession: 0000892569-00-000451
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-07-21T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-08-04'
+    accession: 0001095811-00-002296
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-08-04T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-08-09'
+    accession: 0001095811-00-002482
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-08-09T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-08-16'
+    accession: 0001095811-00-002870
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-08-16T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-10-11'
+    accession: 0001095811-00-003858
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-10-11T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-10-19'
+    accession: 0001095811-00-003983
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-10-19T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-11-07'
+    accession: 0001095811-00-004346
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-11-07T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-11-09'
+    accession: 0001095811-00-004458
+    form: 8-K/A
+    items: 5,7
+    acceptance: '2000-11-09T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-11-22'
+    accession: 0001095811-00-004963
+    form: 8-K
+    items: 7,9
+    acceptance: '2000-11-22T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-11-28'
+    accession: 0001095811-00-005007
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-11-28T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-11-30'
+    accession: 0001095811-00-005040
+    form: 8-K
+    items: 7,9
+    acceptance: '2000-11-30T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-12-15'
+    accession: 0001095811-00-005320
+    form: 8-K
+    items: 7,9
+    acceptance: '2000-12-15T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-12-15'
+    accession: 0001095811-00-005319
+    form: 8-K
+    items: 7,9
+    acceptance: '2000-12-15T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-01-09'
+    accession: 0001095811-01-000118
+    form: 8-K
+    items: 5,7
+    acceptance: '2001-01-09T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-01-24'
+    accession: 0001095811-01-000364
+    form: 8-K
+    items: 7,9
+    acceptance: '2001-01-24T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-03-09'
+    accession: 0001095811-01-500381
+    form: 8-K
+    items: 7,9
+    acceptance: '2001-03-09T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-03-21'
+    accession: 0001095811-01-500568
+    form: 8-K
+    items: 7,9
+    acceptance: '2001-03-21T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-04-19'
+    accession: 0000892569-01-500238
+    form: 8-K
+    items: 7,9
+    acceptance: '2001-04-19T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-06-07'
+    accession: 0001095811-01-502641
+    form: 8-K
+    items: 7,9
+    acceptance: '2001-06-07T00:00:00.000Z'
+    confidence: medium
+  SUNW:
+  - date: '1999-07-23'
+    accession: 0000891618-99-003262
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-07-23T00:00:00.000Z'
+    confidence: medium
+  - date: '1999-08-06'
+    accession: 0000891618-99-003528
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-08-06T00:00:00.000Z'
+    confidence: medium
+  - date: '1999-09-15'
+    accession: 0000891618-99-004176
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-09-15T00:00:00.000Z'
+    confidence: medium
+  LU:
+  - date: '1999-01-08'
+    accession: 0000950123-99-000083
+    form: 8-K
+    items: '5'
+    acceptance: '1999-01-08T00:00:00.000Z'
+    confidence: medium
+  - date: '1999-01-15'
+    accession: 0000950157-99-000019
+    form: 8-K
+    items: '5'
+    acceptance: '1999-01-15T00:00:00.000Z'
+    confidence: medium
+  - date: '1999-03-05'
+    accession: 0000950116-99-000383
+    form: 8-K
+    items: '5'
+    acceptance: '1999-03-05T00:00:00.000Z'
+    confidence: medium
+  - date: '1999-05-18'
+    accession: 0000950116-99-001076
+    form: 8-K/A
+    items: 5,7
+    acceptance: '1999-05-18T00:00:00.000Z'
+    confidence: medium
+  - date: '1999-08-02'
+    accession: 0000950116-99-001443
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-08-02T00:00:00.000Z'
+    confidence: medium
+  - date: '1999-11-19'
+    accession: 0000950123-99-010407
+    form: 8-K
+    items: '5'
+    acceptance: '1999-11-19T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-01-07'
+    accession: 0000950123-00-000151
+    form: 8-K
+    items: '5'
+    acceptance: '2000-01-07T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-02-11'
+    accession: 0000950116-00-000220
+    form: 8-K
+    items: '5'
+    acceptance: '2000-02-11T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-03-01'
+    accession: 0000950157-00-000103
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-03-01T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-03-10'
+    accession: 0000950123-00-002170
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-03-10T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-05-05'
+    accession: 0000950123-00-004609
+    form: 8-K
+    items: '5'
+    acceptance: '2000-05-05T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-07-20'
+    accession: 0000950123-00-006707
+    form: 8-K
+    items: '5'
+    acceptance: '2000-07-20T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-07-28'
+    accession: 0000950123-00-006930
+    form: 8-K
+    items: '5'
+    acceptance: '2000-07-28T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-10-12'
+    accession: 0000950123-00-009308
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-10-12T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-10-24'
+    accession: 0000950123-00-009633
+    form: 8-K
+    items: '9'
+    acceptance: '2000-10-24T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-10-24'
+    accession: 0000950123-00-009624
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-10-24T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-11-15'
+    accession: 0000950123-00-010724
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-11-15T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-11-15'
+    accession: 0000950123-00-010701
+    form: 8-K
+    items: '9'
+    acceptance: '2000-11-15T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-11-21'
+    accession: 0000950123-00-010945
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-11-21T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-12-22'
+    accession: 0000950123-00-011740
+    form: 8-K
+    items: '5'
+    acceptance: '2000-12-22T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-12-28'
+    accession: 0000950123-00-011886
+    form: 8-K
+    items: '9'
+    acceptance: '2000-12-28T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-01-24'
+    accession: 0000950123-01-000555
+    form: 8-K
+    items: '9'
+    acceptance: '2001-01-24T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-02-27'
+    accession: 0000950123-01-001854
+    form: 8-K
+    items: 5,7
+    acceptance: '2001-02-27T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-04-24'
+    accession: 0000950123-01-501063
+    form: 8-K
+    items: '9'
+    acceptance: '2001-04-24T00:00:00.000Z'
+    confidence: medium
+  NT:
+  - date: '2000-10-27'
+    accession: 0000950144-00-012672
+    form: 8-K
+    items: '5'
+    acceptance: '2000-10-27T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-11-01'
+    accession: 0000950144-00-012823
+    form: 8-K
+    items: '5'
+    acceptance: '2000-11-01T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-12-15'
+    accession: 0000950144-00-015019
+    form: 8-K
+    items: '5'
+    acceptance: '2000-12-15T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-01-22'
+    accession: 0000950144-01-001384
+    form: 8-K
+    items: '5'
+    acceptance: '2001-01-22T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-01-29'
+    accession: 0000950123-01-000660
+    form: 8-K
+    items: '5'
+    acceptance: '2001-01-29T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-02-02'
+    accession: 0000950123-01-000823
+    form: 8-K
+    items: 5,7
+    acceptance: '2001-02-02T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-02-07'
+    accession: 0000950144-01-001956
+    form: 8-K
+    items: '5'
+    acceptance: '2001-02-07T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-02-16'
+    accession: 0000950144-01-002910
+    form: 8-K
+    items: '5'
+    acceptance: '2001-02-16T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-03-14'
+    accession: 0000950144-01-003538
+    form: 8-K
+    items: '5'
+    acceptance: '2001-03-14T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-03-28'
+    accession: 0000950144-01-004116
+    form: 8-K
+    items: '5'
+    acceptance: '2001-03-28T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-04-11'
+    accession: 0000950144-01-500722
+    form: 8-K
+    items: '5'
+    acceptance: '2001-04-11T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-04-25'
+    accession: 0000950144-01-501068
+    form: 8-K
+    items: '5'
+    acceptance: '2001-04-25T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-05-14'
+    accession: 0000950124-01-501130
+    form: 8-K
+    items: '5'
+    acceptance: '2001-05-14T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-06-15'
+    accession: 0000903423-01-500158
+    form: 8-K
+    items: 5,7
+    acceptance: '2001-06-15T00:00:00.000Z'
+    confidence: medium
+  WCOM:
+  - date: '1999-10-06'
+    accession: 0000950157-99-000526
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-10-06T00:00:00.000Z'
+    confidence: medium
+  - date: '1999-10-15'
+    accession: 0001005477-99-004748
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-10-15T00:00:00.000Z'
+    confidence: medium
+  - date: '1999-11-05'
+    accession: 0000950130-99-006183
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-11-05T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-04-11'
+    accession: 0000931763-00-000892
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-04-11T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-04-11'
+    accession: 0000931763-00-000891
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-04-11T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-05-16'
+    accession: 0000912057-00-025214
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-05-16T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-05-22'
+    accession: 0000912057-00-025857
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-05-22T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-06-12'
+    accession: 0000912057-00-028262
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-06-12T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-07-13'
+    accession: 0000950157-00-000335
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-07-13T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-11-02'
+    accession: 0000893750-00-000459
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-11-02T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-02-08'
+    accession: 0000950157-01-000143
+    form: 8-K
+    items: '9'
+    acceptance: '2001-02-08T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-03-14'
+    accession: 0000893750-01-000168
+    form: 8-K
+    items: '5'
+    acceptance: '2001-03-14T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-03-28'
+    accession: 0000950138-01-000089
+    form: 8-K
+    items: '9'
+    acceptance: '2001-03-28T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-04-26'
+    accession: 0001005477-01-500032
+    form: 8-K
+    items: 5,7
+    acceptance: '2001-04-26T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-05-16'
+    accession: 0001005477-01-003399
+    form: 8-K
+    items: 5,7
+    acceptance: '2001-05-16T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-06-07'
+    accession: 0000893750-01-500127
+    form: 8-K
+    items: 5,7
+    acceptance: '2001-06-07T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-06-12'
+    accession: 0001005477-01-003685
+    form: 8-K
+    items: 5,7
+    acceptance: '2001-06-12T00:00:00.000Z'
+    confidence: medium
+  ARBA:
+  - date: '1999-11-24'
+    accession: 0000912057-99-007384
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-11-24T00:00:00.000Z'
+    confidence: medium
+  - date: '1999-12-23'
+    accession: 0000912057-99-010554
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-12-23T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-03-21'
+    accession: 0000912057-00-012702
+    form: 8-K
+    items: 2,5,7
+    acceptance: '2000-03-21T00:00:00.000Z'
+    confidence: medium
+  - date: '2000-07-20'
+    accession: 0000912057-00-032582
+    form: 8-K
+    items: 5,7
+    acceptance: '2000-07-20T00:00:00.000Z'
+    confidence: medium
+  - date: '2001-04-03'
+    accession: 0001012870-01-001512
+    form: 8-K
+    items: 5,7
+    acceptance: '2001-04-03T00:00:00.000Z'
     confidence: medium
   JNJ:
   - date: '1999-12-14'
@@ -848,6 +1793,25 @@ filings:
     form: 8-K
     items: 5,7
     acceptance: '2001-01-30T05:00:00.000Z'
+    confidence: medium
+  XOM:
+  - date: '1999-05-06'
+    accession: 0000950103-99-000360
+    form: 8-K
+    items: 5,7
+    acceptance: '1999-05-06T04:00:00.000Z'
+    confidence: medium
+  - date: '1999-12-01'
+    accession: 0000950103-99-001045
+    form: 8-K
+    items: 2,5,7
+    acceptance: '1999-12-01T05:00:00.000Z'
+    confidence: medium
+  - date: '2001-04-02'
+    accession: 0000930661-01-000894
+    form: 8-K
+    items: '9'
+    acceptance: '2001-04-02T04:00:00.000Z'
     confidence: medium
   GE:
   - date: '2000-05-01'

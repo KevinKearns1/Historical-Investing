@@ -1,28 +1,46 @@
-# CIK numbers for companies EDGAR's CURRENT ticker map no longer lists.
+# Period-correct CIKs for symbols EDGAR's current ticker map resolves wrongly
+# or not at all.
 #
-# EDGAR's company_tickers.json only contains active registrants. Every company
-# that was acquired or went bankrupt has fallen out of it -- which for a year
-# 2000 study is precisely the interesting half of the universe. Their filings
-# are still on EDGAR; only the ticker->CIK shortcut is gone.
+# HOW THESE WERE OBTAINED -- this matters, because a wrong CIK does not error.
+# It silently attaches another company's filing dates to your symbol. None of
+# these were typed from memory. Each was produced by scripts/resolve_ciks.py,
+# which searches EDGAR by company name and then pulls the candidate's own
+# submissions record. The decisive evidence in every case below is EDGAR's
+# `formerNames` field -- the registrant's own history of what it was called --
+# corroborated by an SIC code matching the business and a filing history that
+# covers 1999-2001. Re-run the script to reproduce the evidence:
 #
-# To fill one in, search the company NAME (not the ticker) at
-#   https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&company=<name>
-# and copy the 10-digit CIK.
+#     python scripts/resolve_ciks.py
 #
-# Deliberately left EMPTY rather than pre-filled from memory: a wrong CIK does
-# not error, it silently attaches another company's filing dates to your
-# symbol, and you would never see it. Fill these in from the source.
+# Two distinct failures are being corrected here:
 #
-# Format:  SYMBOL: <integer CIK>
-# Example: WCOM: 723527          # verify before trusting
+#   ABSENT      the company went bankrupt or was acquired, so it is not in
+#               company_tickers.json at all (that file lists active registrants).
+#   REASSIGNED  the ticker now belongs to someone else entirely. LU is the
+#               instructive one: today it is Lufax Holding, a Chinese fintech.
 
-# --- needed for the 2000 universe (delisted names) ---
-# YHOO:   # Yahoo! Inc, acquired 2017
-# JDSU:   # JDS Uniphase, renamed Viavi/Lumentum
-# CMGI:   # CMGI Inc
-# BRCM:   # Broadcom Corp (pre-2016 entity)
-# SUNW:   # Sun Microsystems, acquired 2010
-# LU:     # Lucent Technologies, merged 2006
-# NT:     # Nortel Networks, bankrupt 2009
-# WCOM:   # WorldCom, bankrupt 2002
-# ARBA:   # Ariba Inc, acquired 2012
+# --- ABSENT: delisted or acquired -------------------------------------------
+YHOO: 1011006      # ALTABA INC.          former: YAHOO INC
+JDSU: 912093       # VIAVI SOLUTIONS INC. former: JDS UNIPHASE CORP /CA/
+CMGI: 914712       # Steel Connect LLC    former: CMGI INC
+BRCM: 1054374      # BROADCOM CORP        filed 1998-02-05 .. 2020-07-06
+SUNW: 709519       # SUN MICROSYSTEMS, INC.
+WCOM: 723527       # MCI INC              former: WORLDCOM INC; MCI WORLDCOM INC
+ARBA: 1084755      # ARIBA INC            filed 1999-04-23 .. 2012-10-11
+
+# NT is the one genuine judgement call. EDGAR returns two live-in-window
+# entities: NORTEL NETWORKS CORP (72911, former NORTHERN TELECOM LTD) and
+# NORTEL NETWORKS LTD (1119664, first filing 2000-11-08). 72911 is the listed
+# parent whose shares traded as NT for all of 2000; 1119664 is the operating
+# subsidiary and did not exist as a filer until November 2000.
+NT: 72911          # NORTEL NETWORKS CORP former: NORTHERN TELECOM LTD
+
+# --- REASSIGNED: ticker now points at a different or later entity -----------
+LU: 1006240        # ALCATEL-LUCENT USA INC. former: LUCENT TECHNOLOGIES INC
+                   #   (map says 1816007 = Lufax Holding Ltd -- unrelated)
+ORCL: 777676       # Oracle Systems       former: ORACLE CORP /DE/
+                   #   (map says 1341439 = the 2005 holding entity, first filing 2016)
+DELL: 826083       # DELL INC             former: DELL COMPUTER CORP
+                   #   (map says 1571996 = Dell Technologies, the 2013 re-IPO)
+XOM: 34088         # EXXON MOBIL CORP     former: EXXON CORP
+                   #   (map says 2115436 = ExxonMobil Holdings, first filing 2026)
