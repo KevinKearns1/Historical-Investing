@@ -90,6 +90,8 @@ class DowntrendBounceShort(Strategy):
         qty = -ctx.risk.shares_for(ctx.net_liq(), px, stop, self.capital)
         if abs(qty) < 1:
             return
+        if not self.symbol_is_free(ctx, sym):
+            return              # another strategy owns this symbol
         self.state["tried"][sym] = self.state["tried"].get(sym, 0) + 1
         fill = ctx.broker.market_order(sym, qty, self.name, note="bounce short")
         if fill.ok:

@@ -96,6 +96,8 @@ class OpeningRangeBreakout(Strategy):
         qty = ctx.risk.shares_for(ctx.net_liq(), px, stop, self.capital) * side
         if abs(qty) < 1:
             return
+        if not self.symbol_is_free(ctx, sym):
+            return              # another strategy owns this symbol
         fill = ctx.broker.market_order(sym, qty, self.name, note="ORB entry")
         if fill.ok:
             self.state["taken"].add(sym)

@@ -77,6 +77,8 @@ class VWAPReversion(Strategy):
         qty = ctx.risk.shares_for(ctx.net_liq(), px, stop, self.capital) * side
         if abs(qty) < 1:
             return
+        if not self.symbol_is_free(ctx, sym):
+            return              # another strategy owns this symbol
         fill = ctx.broker.market_order(sym, qty, self.name, note=f"vwap z={z:.2f}")
         if fill.ok:
             ctx.risk.note_trade(self.name)

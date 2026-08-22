@@ -167,6 +167,15 @@ class Backtest:
         found = self.feed.load(sorted(needed))
         missing = sorted(set(needed) - set(found))
         self.universe = [s for s in self.universe if s in found]
+        # Strategies read ctx.universe, and prepare() rebinds self.universe to a
+        # NEW list -- so the Context would keep the unpruned one and hand a
+        # strategy a symbol the feed never loaded. Prune every copy, including
+        # the private lists strategies carry (OP-03's value sleeve).
+        self.ctx.universe = list(self.universe)
+        for s in self.strategies:
+            vu = getattr(s, "value_universe", None)
+            if vu:
+                s.value_universe = [x for x in vu if x in found]
         return missing
 
     # -- regime -----------------------------------------------------------

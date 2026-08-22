@@ -43,3 +43,15 @@ class Strategy:
 
     def my_option_positions(self, ctx) -> dict:
         return {k: p for k, p in ctx.pf.options.items() if p.strategy == self.name}
+
+    def symbol_is_free(self, ctx, sym: str) -> bool:
+        """True unless another strategy already holds this symbol.
+
+        A real account nets per symbol -- it cannot be long and short the same
+        stock at one broker. Without this guard, strategy B entering opposite
+        to strategy A's position nets the position to flat: the fill reports
+        ok, `ctx.pf.equities[sym]` no longer exists, and A's stop silently
+        vanishes. Real 2000 data hit exactly this on SPY.
+        """
+        pos = ctx.pf.equities.get(sym)
+        return pos is None or pos.strategy == self.name
